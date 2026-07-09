@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "402214942879",
+    "project_id": "vault-sec",
+    "storage_bucket": "vault-sec.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:402214942879:android:cf5ad76ffbf6a3aa314aaa",
+        "android_client_info": {
+          "package_name": "com.thecraftycoders.secure_vault"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBYhvraAnQV-gRNJtQa_yvtuE0LSbXNesk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
