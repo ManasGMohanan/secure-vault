@@ -3,8 +3,8 @@ description: "A new Flutter project."
 
 publish_to: 'none' 
 
-
-version: 1.0.0+1
+# The following defines the version and build number for your application.
+version: 1.0.0+2
 
 environment:
   sdk: ^3.11.1

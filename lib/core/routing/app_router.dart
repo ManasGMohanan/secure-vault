@@ -7,6 +7,7 @@ import '../../features/auth/domain/entities/auth_state.dart';
 import '../../features/auth/presentation/providers/auth_notifier.dart';
 import '../../features/auth/presentation/screens/onboarding_screen.dart';
 import '../../features/auth/presentation/screens/unlock_screen.dart';
+import '../../features/auth/presentation/screens/splash_screen.dart';
 import '../../features/password_generator/presentation/screens/password_generator_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
 import '../../features/vault/presentation/screens/add_edit_entry_screen.dart';
@@ -17,9 +18,26 @@ import 'router_transition.dart';
 
 part 'app_router.g.dart';
 
+bool _hasCompletedInitialLoad = false;
+DateTime? _splashStartTime;
+
+@riverpod
+Future<void> splashDelay(SplashDelayRef ref) async {
+  _splashStartTime = DateTime.now();
+  debugPrint('[SPLASH] Start time: $_splashStartTime');
+  await Future.delayed(const Duration(milliseconds: 700));
+  debugPrint('[SPLASH] Delay elapsed at: ${DateTime.now()}, duration: ${DateTime.now().difference(_splashStartTime!)}');
+}
+
 class RouterRefreshListenable extends ChangeNotifier {
   RouterRefreshListenable(Ref ref) {
-    ref.listen(authNotifierProvider, (_, __) {
+    ref.listen(authNotifierProvider, (previous, next) {
+      if (next.hasValue && _splashStartTime != null) {
+        debugPrint('[SPLASH] Auth resolution time: ${DateTime.now()}, duration since splash start: ${DateTime.now().difference(_splashStartTime!)}');
+      }
+      notifyListeners();
+    });
+    ref.listen(splashDelayProvider, (_, __) {
       notifyListeners();
     });
   }
@@ -35,21 +53,36 @@ GoRouter appRouter(AppRouterRef ref) {
 
   return GoRouter(
     navigatorKey: rootNavigatorKey,
-    initialLocation: '/unlock',
+    initialLocation: '/splash',
     refreshListenable: refreshListenable,
     redirect: (context, state) {
       final authStateAsync = ref.read(authNotifierProvider);
       final authState = authStateAsync.valueOrNull;
       
-      // 1. Check if auth notifier is still loading initial state
+      final splashDelayAsync = ref.read(splashDelayProvider);
+      final isSplashDelayLoading = splashDelayAsync.isLoading;
+      
+      // 1. Initial startup phase loader check
+      if (!_hasCompletedInitialLoad) {
+        if (authStateAsync.isLoading || isSplashDelayLoading) {
+          if (state.matchedLocation != '/splash') return '/splash';
+          return null; // Stay on /splash
+        }
+        // Both initial checks resolved, mark initial load as complete
+        _hasCompletedInitialLoad = true;
+      }
+
+      // 2. Subsequent load check (e.g. login/register submit events)
+      // Stay on the current screen and display the screen's local loading spinner.
       if (authStateAsync.isLoading) {
-        return null; // Stay on current/splash until loaded
+        return null;
       }
 
       if (authState == null) return null;
 
       final isGoingToOnboarding = state.matchedLocation == '/onboarding';
       final isGoingToUnlock = state.matchedLocation == '/unlock';
+      final isGoingToSplash = state.matchedLocation == '/splash';
 
       String? result;
       if (authState is AuthUninitialized) {
@@ -57,12 +90,20 @@ GoRouter appRouter(AppRouterRef ref) {
       } else if (authState is AuthLocked) {
         if (!isGoingToUnlock) result = '/unlock';
       } else if (authState is AuthUnlocked) {
-        if (isGoingToOnboarding || isGoingToUnlock) result = '/';
+        if (isGoingToOnboarding || isGoingToUnlock || isGoingToSplash) result = '/';
       }
 
       return result;
     },
     routes: [
+      GoRoute(
+        path: '/splash',
+        pageBuilder: (context, state) => RouterTransition.fade(
+          context: context,
+          state: state,
+          child: const SplashScreen(),
+        ),
+      ),
       // Top level auth routes with fade transitions
       GoRoute(
         path: '/onboarding',
