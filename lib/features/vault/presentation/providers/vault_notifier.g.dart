@@ -7,7 +7,7 @@ part of 'vault_notifier.dart';
 // **************************************************************************
 
 String _$filteredVaultEntriesHash() =>
-    r'de61a304c4379a8e3c9a2946055d23b81c99e843';
+    r'3a6d70cb1c181b0a3379291acee1117fd26d00ed';
 
 /// See also [filteredVaultEntries].
 @ProviderFor(filteredVaultEntries)

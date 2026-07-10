@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -62,17 +62,24 @@ class VaultRepository {
       try {
         final dto = VaultEntryModel.fromEntity(entry);
         final jsonStr = jsonEncode(dto.toJson());
-        final gcm = await CryptographyHelper.encryptGcm(_encryptionKey!, utf8.encode(jsonStr));
+        final gcm = await CryptographyHelper.encryptGcm(
+          _encryptionKey!,
+          utf8.encode(jsonStr),
+        );
 
         // Firestore client automatically handles offline queuing and write retries
-        _remote.saveEncryptedEntry(uid, entry.id, {
-          'ciphertext': gcm.ciphertext,
-          'iv': gcm.iv,
-          'tag': gcm.tag,
-          'updatedAt': FieldValue.serverTimestamp(),
-          'deleted': false,
-        }).catchError((_) {});
-      } catch (_) {}
+        _remote
+            .saveEncryptedEntry(uid, entry.id, {
+              'ciphertext': gcm.ciphertext,
+              'iv': gcm.iv,
+              'tag': gcm.tag,
+              'updatedAt': FieldValue.serverTimestamp(),
+              'deleted': false,
+            })
+            .catchError((_) {});
+      } catch (e, stack) {
+        debugPrint('[FIRESTORE_WRITE] Stack trace: $stack');
+      }
     }
   }
 
@@ -85,13 +92,15 @@ class VaultRepository {
     final uid = _currentUid;
     if (uid != null) {
       try {
-        _remote.saveEncryptedEntry(uid, id, {
-          'ciphertext': '',
-          'iv': '',
-          'tag': '',
-          'updatedAt': FieldValue.serverTimestamp(),
-          'deleted': true,
-        }).catchError((_) {});
+        _remote
+            .saveEncryptedEntry(uid, id, {
+              'ciphertext': '',
+              'iv': '',
+              'tag': '',
+              'updatedAt': FieldValue.serverTimestamp(),
+              'deleted': true,
+            })
+            .catchError((_) {});
       } catch (_) {}
     }
   }
@@ -115,7 +124,9 @@ class VaultRepository {
 
         final data = doc.data();
         final isDeleted = data['deleted'] as bool? ?? false;
-        final remoteTime = (data['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.fromMillisecondsSinceEpoch(0);
+        final remoteTime =
+            (data['updatedAt'] as Timestamp?)?.toDate() ??
+            DateTime.fromMillisecondsSinceEpoch(0);
 
         final localEntry = localMap[entryId];
 
@@ -161,7 +172,8 @@ class VaultRepository {
       ivBase64: data['iv'] as String,
       tagBase64: data['tag'] as String,
     );
-    final jsonMap = jsonDecode(utf8.decode(decryptedBytes)) as Map<String, dynamic>;
+    final jsonMap =
+        jsonDecode(utf8.decode(decryptedBytes)) as Map<String, dynamic>;
     return VaultEntryModel.fromJson(jsonMap).toEntity();
   }
 }
