@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
   AppTheme._();
@@ -16,9 +17,11 @@ class AppTheme {
   static const Color lightBorder = Color(0xFFE2E8F0); // Slate 200
 
   static ThemeData get lightTheme {
+    final baseTextTheme = ThemeData(brightness: Brightness.light).textTheme;
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
+      fontFamily: GoogleFonts.inter().fontFamily,
       colorScheme: ColorScheme.fromSeed(
         seedColor: primaryColor,
         brightness: Brightness.light,
@@ -26,6 +29,7 @@ class AppTheme {
         surface: lightBg,
       ),
       scaffoldBackgroundColor: lightBg,
+      textTheme: GoogleFonts.interTextTheme(baseTextTheme),
       cardTheme: CardThemeData(
         color: lightCard,
         elevation: 0,
@@ -34,13 +38,13 @@ class AppTheme {
           side: const BorderSide(color: lightBorder, width: 1),
         ),
       ),
-      appBarTheme: const AppBarTheme(
+      appBarTheme: AppBarTheme(
         backgroundColor: lightBg,
         elevation: 0,
         centerTitle: true,
-        iconTheme: IconThemeData(color: Color(0xFF1E293B)),
-        titleTextStyle: TextStyle(
-          color: Color(0xFF1E293B),
+        iconTheme: const IconThemeData(color: Color(0xFF1E293B)),
+        titleTextStyle: GoogleFonts.inter(
+          color: const Color(0xFF1E293B),
           fontSize: 20,
           fontWeight: FontWeight.w600,
         ),
@@ -74,7 +78,7 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          textStyle: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -85,16 +89,18 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          textStyle: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600),
         ),
       ),
     );
   }
 
   static ThemeData get darkTheme {
+    final baseTextTheme = ThemeData(brightness: Brightness.dark).textTheme;
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
+      fontFamily: GoogleFonts.inter().fontFamily,
       colorScheme: ColorScheme.fromSeed(
         seedColor: primaryDarkColor,
         brightness: Brightness.dark,
@@ -102,6 +108,7 @@ class AppTheme {
         surface: darkBg,
       ),
       scaffoldBackgroundColor: darkBg,
+      textTheme: GoogleFonts.interTextTheme(baseTextTheme),
       cardTheme: CardThemeData(
         color: darkCard,
         elevation: 0,
@@ -110,12 +117,12 @@ class AppTheme {
           side: const BorderSide(color: darkBorder, width: 1),
         ),
       ),
-      appBarTheme: const AppBarTheme(
+      appBarTheme: AppBarTheme(
         backgroundColor: darkBg,
         elevation: 0,
         centerTitle: true,
-        iconTheme: IconThemeData(color: Colors.white),
-        titleTextStyle: TextStyle(
+        iconTheme: const IconThemeData(color: Colors.white),
+        titleTextStyle: GoogleFonts.inter(
           color: Colors.white,
           fontSize: 20,
           fontWeight: FontWeight.w600,
@@ -123,7 +130,7 @@ class AppTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: Color(0xFF1E293B),
+        fillColor: const Color(0xFF1E293B),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: darkBorder),
@@ -150,7 +157,7 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          textStyle: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -161,7 +168,7 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          textStyle: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600),
         ),
       ),
     );

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../features/auth/domain/entities/auth_state.dart';
 import '../../features/auth/presentation/providers/auth_notifier.dart';
@@ -26,14 +27,18 @@ Future<void> splashDelay(SplashDelayRef ref) async {
   _splashStartTime = DateTime.now();
   debugPrint('[SPLASH] Start time: $_splashStartTime');
   await Future.delayed(const Duration(milliseconds: 700));
-  debugPrint('[SPLASH] Delay elapsed at: ${DateTime.now()}, duration: ${DateTime.now().difference(_splashStartTime!)}');
+  debugPrint(
+    '[SPLASH] Delay elapsed at: ${DateTime.now()}, duration: ${DateTime.now().difference(_splashStartTime!)}',
+  );
 }
 
 class RouterRefreshListenable extends ChangeNotifier {
   RouterRefreshListenable(Ref ref) {
     ref.listen(authNotifierProvider, (previous, next) {
       if (next.hasValue && _splashStartTime != null) {
-        debugPrint('[SPLASH] Auth resolution time: ${DateTime.now()}, duration since splash start: ${DateTime.now().difference(_splashStartTime!)}');
+        debugPrint(
+          '[SPLASH] Auth resolution time: ${DateTime.now()}, duration since splash start: ${DateTime.now().difference(_splashStartTime!)}',
+        );
       }
       notifyListeners();
     });
@@ -58,10 +63,10 @@ GoRouter appRouter(AppRouterRef ref) {
     redirect: (context, state) {
       final authStateAsync = ref.read(authNotifierProvider);
       final authState = authStateAsync.valueOrNull;
-      
+
       final splashDelayAsync = ref.read(splashDelayProvider);
       final isSplashDelayLoading = splashDelayAsync.isLoading;
-      
+
       // 1. Initial startup phase loader check
       if (!_hasCompletedInitialLoad) {
         if (authStateAsync.isLoading || isSplashDelayLoading) {
@@ -90,7 +95,8 @@ GoRouter appRouter(AppRouterRef ref) {
       } else if (authState is AuthLocked) {
         if (!isGoingToUnlock) result = '/unlock';
       } else if (authState is AuthUnlocked) {
-        if (isGoingToOnboarding || isGoingToUnlock || isGoingToSplash) result = '/';
+        if (isGoingToOnboarding || isGoingToUnlock || isGoingToSplash)
+          result = '/';
       }
 
       return result;
@@ -136,9 +142,7 @@ GoRouter appRouter(AppRouterRef ref) {
         pageBuilder: (context, state) => RouterTransition.slideUp(
           context: context,
           state: state,
-          child: VaultEntryDetailScreen(
-            id: state.pathParameters['id'] ?? '',
-          ),
+          child: VaultEntryDetailScreen(id: state.pathParameters['id'] ?? ''),
         ),
       ),
       GoRoute(
@@ -146,9 +150,7 @@ GoRouter appRouter(AppRouterRef ref) {
         pageBuilder: (context, state) => RouterTransition.slideUp(
           context: context,
           state: state,
-          child: AddEditEntryScreen(
-            id: state.pathParameters['id'],
-          ),
+          child: AddEditEntryScreen(id: state.pathParameters['id']),
         ),
       ),
 
@@ -218,59 +220,62 @@ class MainLayoutScreen extends StatelessWidget {
             ),
           ),
         ),
-        child: BottomNavigationBar(
-          currentIndex: currentIndex,
-          backgroundColor: isDark ? const Color(0xFF0F172A) : Colors.white,
-          selectedItemColor: theme.colorScheme.primary,
-          unselectedItemColor: isDark ? Colors.grey.shade500 : Colors.grey.shade400,
-          elevation: 0,
-          type: BottomNavigationBarType.fixed,
-          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
-          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 12),
-          onTap: (index) {
-            if (index == 0) {
-              context.goToHome();
-            } else if (index == 1) {
-              context.goToGenerator();
-            } else if (index == 2) {
-              context.goToSettings();
-            }
-          },
-          items: const [
-            BottomNavigationBarItem(
-              icon: Padding(
-                padding: EdgeInsets.only(bottom: 4),
-                child: Icon(Icons.vpn_key_outlined),
-              ),
-              activeIcon: Padding(
-                padding: EdgeInsets.only(bottom: 4),
-                child: Icon(Icons.vpn_key),
-              ),
-              label: 'Vault',
+        child: Theme(
+          data: theme.copyWith(
+            splashColor: Colors.transparent,
+            highlightColor: Colors.transparent,
+            hoverColor: Colors.transparent,
+          ),
+          child: BottomNavigationBar(
+            currentIndex: currentIndex,
+            backgroundColor: isDark ? const Color(0xFF0F172A) : Colors.white,
+            selectedItemColor: theme.colorScheme.primary,
+            unselectedItemColor: isDark
+                ? Colors.grey.shade500
+                : Colors.grey.shade400,
+            elevation: 0,
+            type: BottomNavigationBarType.fixed,
+            selectedLabelStyle: const TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 12,
             ),
-            BottomNavigationBarItem(
-              icon: Padding(
-                padding: EdgeInsets.only(bottom: 4),
-                child: Icon(Icons.tune_outlined),
-              ),
-              activeIcon: Padding(
-                padding: EdgeInsets.only(bottom: 4),
-                child: Icon(Icons.tune),
-              ),
-              label: 'Generator',
+            unselectedLabelStyle: const TextStyle(
+              fontWeight: FontWeight.w500,
+              fontSize: 12,
             ),
-            BottomNavigationBarItem(
-              icon: Padding(
-                padding: EdgeInsets.only(bottom: 4),
-                child: Icon(Icons.settings_outlined),
+            onTap: (index) {
+              if (index == 0) {
+                context.goToHome();
+              } else if (index == 1) {
+                context.goToGenerator();
+              } else if (index == 2) {
+                context.goToSettings();
+              }
+            },
+            items: const [
+              BottomNavigationBarItem(
+                icon: Padding(
+                  padding: EdgeInsets.only(bottom: 4),
+                  child: Icon(LucideIcons.key),
+                ),
+                label: 'Vault',
               ),
-              activeIcon: Padding(
-                padding: EdgeInsets.only(bottom: 4),
-                child: Icon(Icons.settings),
+              BottomNavigationBarItem(
+                icon: Padding(
+                  padding: EdgeInsets.only(bottom: 4),
+                  child: Icon(LucideIcons.sparkles),
+                ),
+                label: 'Generator',
               ),
-              label: 'Settings',
-            ),
-          ],
+              BottomNavigationBarItem(
+                icon: Padding(
+                  padding: EdgeInsets.only(bottom: 4),
+                  child: Icon(LucideIcons.settings),
+                ),
+                label: 'Settings',
+              ),
+            ],
+          ),
         ),
       ),
     );
