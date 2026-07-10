@@ -86,6 +86,12 @@ class VaultLocalDatasource {
   Future<void> deleteBox() async {
     await closeBox();
     try {
+      if (kIsWeb) {
+        await Hive.deleteBoxFromDisk(boxName);
+        debugPrint('[WIPE] Hive box deleted from IndexedDB on Web.');
+        return;
+      }
+      
       final docDir = await getApplicationDocumentsDirectory();
       final file = File('${docDir.path}/$boxName.hive');
       final beforeExists = await file.exists();
