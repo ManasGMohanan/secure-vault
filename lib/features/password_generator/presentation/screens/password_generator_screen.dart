@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:secure_vault/features/password_generator/domain/password_generator.dart';
+import 'package:secure_vault/core/theme/theme.dart';
 
 class PasswordGeneratorScreen extends StatefulWidget {
   const PasswordGeneratorScreen({super.key});
@@ -54,16 +55,16 @@ class _PasswordGeneratorScreenState extends State<PasswordGeneratorScreen> {
     );
   }
 
-  Color _getStrengthColor() {
+  Color _getStrengthColor(AppColorsExtension colors) {
     switch (_strength) {
       case PasswordStrength.weak:
-        return Colors.redAccent;
+        return colors.error;
       case PasswordStrength.medium:
-        return Colors.orangeAccent;
+        return colors.brandAccent; // Uses brandAccent to avoid inventing non-palette warning colors
       case PasswordStrength.strong:
-        return Colors.tealAccent.shade400;
+        return colors.successForeground;
       case PasswordStrength.veryStrong:
-        return Colors.teal.shade400;
+        return colors.success;
     }
   }
 
@@ -83,7 +84,7 @@ class _PasswordGeneratorScreenState extends State<PasswordGeneratorScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final colors = theme.extension<AppColorsExtension>()!;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Password Generator')),
@@ -98,36 +99,30 @@ class _PasswordGeneratorScreenState extends State<PasswordGeneratorScreen> {
                 padding: const EdgeInsets.all(20.0),
                 child: Column(
                   children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: SelectableText(
-                            _generatedPassword,
-                            style: const TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                              fontFamily: 'monospace',
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.autorenew_rounded),
-                          tooltip: 'Regenerate',
-                          onPressed: _generate,
-                        ),
-                      ],
+                    SelectableText(
+                      _generatedPassword,
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        fontFamily: 'monospace',
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.5,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 16),
-                    // Strength visual
+                    const SizedBox(height: 20),
                     Row(
                       children: [
+                        IconButton(
+                          icon: const Icon(Icons.refresh_rounded),
+                          onPressed: _generate,
+                          tooltip: 'Generate new password',
+                        ),
+                        const SizedBox(width: 8),
                         Text(
                           'Strength: ${_strength.label}',
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
-                            color: _getStrengthColor(),
+                            color: _getStrengthColor(colors),
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -136,10 +131,8 @@ class _PasswordGeneratorScreenState extends State<PasswordGeneratorScreen> {
                             borderRadius: BorderRadius.circular(4),
                             child: LinearProgressIndicator(
                               value: _getStrengthPercentage(),
-                              color: _getStrengthColor(),
-                              backgroundColor: isDark
-                                  ? const Color(0xFF1E293B)
-                                  : Colors.grey.shade200,
+                              color: _getStrengthColor(colors),
+                              backgroundColor: colors.surfaceSecondary,
                               minHeight: 6,
                             ),
                           ),
@@ -186,7 +179,7 @@ class _PasswordGeneratorScreenState extends State<PasswordGeneratorScreen> {
                         Text(
                           '$_length characters',
                           style: TextStyle(
-                            color: theme.colorScheme.primary,
+                            color: colors.brandPrimary,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -211,7 +204,7 @@ class _PasswordGeneratorScreenState extends State<PasswordGeneratorScreen> {
                     SwitchListTile(
                       title: const Text('Uppercase Letters (A-Z)'),
                       value: _includeUppercase,
-                      activeThumbColor: theme.colorScheme.primary,
+                      activeThumbColor: colors.brandPrimary,
                       onChanged: (val) {
                         setState(() => _includeUppercase = val);
                         _generate();
@@ -221,7 +214,7 @@ class _PasswordGeneratorScreenState extends State<PasswordGeneratorScreen> {
                     SwitchListTile(
                       title: const Text('Lowercase Letters (a-z)'),
                       value: _includeLowercase,
-                      activeThumbColor: theme.colorScheme.primary,
+                      activeThumbColor: colors.brandPrimary,
                       onChanged: (val) {
                         setState(() => _includeLowercase = val);
                         _generate();
@@ -231,7 +224,7 @@ class _PasswordGeneratorScreenState extends State<PasswordGeneratorScreen> {
                     SwitchListTile(
                       title: const Text('Numbers (0-9)'),
                       value: _includeNumbers,
-                      activeThumbColor: theme.colorScheme.primary,
+                      activeThumbColor: colors.brandPrimary,
                       onChanged: (val) {
                         setState(() => _includeNumbers = val);
                         _generate();
@@ -241,7 +234,7 @@ class _PasswordGeneratorScreenState extends State<PasswordGeneratorScreen> {
                     SwitchListTile(
                       title: const Text('Special Symbols (!@#...)'),
                       value: _includeSymbols,
-                      activeThumbColor: theme.colorScheme.primary,
+                      activeThumbColor: colors.brandPrimary,
                       onChanged: (val) {
                         setState(() => _includeSymbols = val);
                         _generate();
@@ -251,7 +244,7 @@ class _PasswordGeneratorScreenState extends State<PasswordGeneratorScreen> {
                     SwitchListTile(
                       title: const Text('Exclude Ambiguous (e.g. l, 1, o, 0)'),
                       value: _excludeAmbiguous,
-                      activeThumbColor: theme.colorScheme.primary,
+                      activeThumbColor: colors.brandPrimary,
                       onChanged: (val) {
                         setState(() => _excludeAmbiguous = val);
                         _generate();

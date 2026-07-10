@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:secure_vault/core/routing/gorouter_extension.dart';
+import 'package:secure_vault/core/theme/theme.dart';
 import 'floating_notched_painter.dart';
 
 class MainLayoutScreen extends StatelessWidget {
@@ -17,7 +18,7 @@ class MainLayoutScreen extends StatelessWidget {
     }
 
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final colors = theme.extension<AppColorsExtension>()!;
 
     return Scaffold(
       body: child,
@@ -28,26 +29,16 @@ class MainLayoutScreen extends StatelessWidget {
             SizedBox(
               width: 240, // Scaled down overall width
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  12,
-                  0,
-                  12,
-                  12,
-                ), // Scaled down padding
+                padding: const EdgeInsets.fromLTRB(12, 0, 12, 12), // Scaled down padding
                 child: Stack(
                   clipBehavior: Clip.none,
                   alignment: Alignment.center,
                   children: [
                     CustomPaint(
-                      size: const Size(
-                        double.infinity,
-                        52,
-                      ), // Scaled down height (52px)
+                      size: const Size(double.infinity, 52), // Scaled down height (52px)
                       painter: FloatingNotchedPainter(
-                        color: isDark ? const Color(0xFF1E293B) : Colors.white,
-                        borderColor: isDark
-                            ? const Color(0xFF334155)
-                            : const Color(0xFFE2E8F0),
+                        color: colors.surfacePrimary,
+                        borderColor: colors.borderDefault,
                       ),
                     ),
                     SizedBox(
@@ -65,10 +56,8 @@ class MainLayoutScreen extends StatelessWidget {
                                   Icon(
                                     LucideIcons.key,
                                     color: currentIndex == 0
-                                        ? theme.colorScheme.primary
-                                        : (isDark
-                                              ? Colors.grey.shade500
-                                              : Colors.grey.shade400),
+                                        ? colors.brandPrimary
+                                        : colors.textDisabled,
                                     size: 20, // Scaled down icon size
                                   ),
                                   const SizedBox(height: 3),
@@ -76,14 +65,10 @@ class MainLayoutScreen extends StatelessWidget {
                                     'Vault',
                                     style: TextStyle(
                                       fontSize: 11, // Scaled down font size
-                                      fontWeight: currentIndex == 0
-                                          ? FontWeight.w600
-                                          : FontWeight.w500,
+                                      fontWeight: currentIndex == 0 ? FontWeight.w600 : FontWeight.w500,
                                       color: currentIndex == 0
-                                          ? theme.colorScheme.primary
-                                          : (isDark
-                                                ? Colors.grey.shade500
-                                                : Colors.grey.shade400),
+                                          ? colors.brandPrimary
+                                          : colors.textDisabled,
                                     ),
                                   ),
                                 ],
@@ -91,9 +76,7 @@ class MainLayoutScreen extends StatelessWidget {
                             ),
                           ),
                           // Centered Spacer for the FAB cutout
-                          const SizedBox(
-                            width: 64,
-                          ), // Balanced width for spacer
+                          const SizedBox(width: 64), // Balanced width for spacer
                           // Generator tab
                           Expanded(
                             child: GestureDetector(
@@ -105,10 +88,8 @@ class MainLayoutScreen extends StatelessWidget {
                                   Icon(
                                     LucideIcons.sparkles,
                                     color: currentIndex == 1
-                                        ? theme.colorScheme.primary
-                                        : (isDark
-                                              ? Colors.grey.shade500
-                                              : Colors.grey.shade400),
+                                        ? colors.brandPrimary
+                                        : colors.textDisabled,
                                     size: 20, // Scaled down icon size
                                   ),
                                   const SizedBox(height: 3),
@@ -116,14 +97,10 @@ class MainLayoutScreen extends StatelessWidget {
                                     'Generator',
                                     style: TextStyle(
                                       fontSize: 11, // Scaled down font size
-                                      fontWeight: currentIndex == 1
-                                          ? FontWeight.w600
-                                          : FontWeight.w500,
+                                      fontWeight: currentIndex == 1 ? FontWeight.w600 : FontWeight.w500,
                                       color: currentIndex == 1
-                                          ? theme.colorScheme.primary
-                                          : (isDark
-                                                ? Colors.grey.shade500
-                                                : Colors.grey.shade400),
+                                          ? colors.brandPrimary
+                                          : colors.textDisabled,
                                     ),
                                   ),
                                 ],
@@ -142,7 +119,7 @@ class MainLayoutScreen extends StatelessWidget {
                           width: 48, // Scaled down FAB size (48px)
                           height: 48,
                           decoration: BoxDecoration(
-                            color: theme.colorScheme.primary,
+                            color: colors.brandPrimary,
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(

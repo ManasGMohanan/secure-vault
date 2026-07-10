@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:secure_vault/core/routing/gorouter_extension.dart';
+import 'package:secure_vault/core/theme/theme.dart';
 import 'package:uuid/uuid.dart';
 import '../../domain/entities/vault_entry.dart';
 import '../../presentation/providers/vault_notifier.dart';
@@ -316,22 +317,22 @@ class _AddEditEntryScreenState extends ConsumerState<AddEditEntryScreen> {
   }
 
   Color _getStrengthColor() {
+    final colors = Theme.of(context).extension<AppColorsExtension>()!;
     switch (_strength) {
       case PasswordStrength.weak:
-        return Colors.redAccent;
+        return colors.error;
       case PasswordStrength.medium:
-        return Colors.orangeAccent;
+        return colors.brandAccent; // Uses brandAccent to avoid inventing non-palette warning colors
       case PasswordStrength.strong:
-        return Colors.tealAccent.shade400;
+        return colors.successForeground;
       case PasswordStrength.veryStrong:
-        return Colors.teal.shade400;
+        return colors.success;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final categories = ['Social', 'Banking', 'Work', 'Email', 'Other'];
 
     return Scaffold(
@@ -471,9 +472,7 @@ class _AddEditEntryScreenState extends ConsumerState<AddEditEntryScreen> {
                               ? 0.75
                               : 1.0,
                           color: _getStrengthColor(),
-                          backgroundColor: isDark
-                              ? Colors.grey.shade800
-                              : Colors.grey.shade200,
+                          backgroundColor: Theme.of(context).extension<AppColorsExtension>()!.surfaceSecondary,
                           minHeight: 4,
                         ),
                       ),
@@ -569,9 +568,9 @@ class _AddEditEntryScreenState extends ConsumerState<AddEditEntryScreen> {
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.delete_outline,
-                        color: Colors.redAccent,
+                        color: Theme.of(context).extension<AppColorsExtension>()!.error,
                       ),
                       onPressed: () => _removeCustomField(idx),
                     ),
