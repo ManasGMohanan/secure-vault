@@ -5,6 +5,7 @@ import 'package:hive_ce_flutter/hive_ce_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'core/security/web_storage_helper.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'firebase_options.dart';
 import 'app.dart';
 import 'features/settings/data/settings_repository.dart';
@@ -26,6 +27,9 @@ void main() async {
 
   // Initialize SharedPreferences
   final prefs = await SharedPreferences.getInstance();
+
+  // Disable runtime font fetching to force using locally bundled Inter TTFs
+  GoogleFonts.config.allowRuntimeFetching = false;
 
   runApp(
     ProviderScope(
