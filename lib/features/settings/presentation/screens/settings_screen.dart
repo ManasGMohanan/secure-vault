@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/security/biometric_service.dart';
 import '../../../auth/presentation/providers/auth_notifier.dart';
-import '../../../auth/domain/entities/auth_state.dart';
 import '../../presentation/providers/settings_notifier.dart';
 import 'package:secure_vault/core/routing/gorouter_extension.dart';
+import 'package:secure_vault/core/theme/theme.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -32,7 +32,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     }
   }
 
-  void _showSignOutConfirmation() {
+  void _showSignOutConfirmation(AppColorsExtension colors) {
     showDialog(
       context: context,
       builder: (dialogContext) {
@@ -53,7 +53,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 Navigator.of(dialogContext).pop();
                 await ref.read(authNotifierProvider.notifier).factoryReset();
               },
-              style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
+              style: TextButton.styleFrom(foregroundColor: colors.error),
               child: const Text('Sign Out'),
             ),
           ],
@@ -62,7 +62,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  void _showFactoryResetConfirmation() {
+  void _showFactoryResetConfirmation(AppColorsExtension colors) {
     showDialog(
       context: context,
       builder: (dialogContext) {
@@ -81,7 +81,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 Navigator.of(dialogContext).pop();
                 await ref.read(authNotifierProvider.notifier).factoryReset();
               },
-              style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
+              style: TextButton.styleFrom(foregroundColor: colors.error),
               child: const Text('Wipe Vault'),
             ),
           ],
@@ -93,9 +93,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final settings = ref.watch(settingsNotifierProvider);
-    final authState = ref.watch(authNotifierProvider).valueOrNull;
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final colors = theme.extension<AppColorsExtension>()!;
 
     return Scaffold(
       appBar: AppBar(
@@ -115,34 +114,25 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         padding: const EdgeInsets.symmetric(vertical: 8),
         children: [
           // Section 1: Security Settings
-          _buildSectionHeader('Security Settings', theme),
+          _buildSectionHeader('Security Settings', colors),
           
           // Biometric toggle
           if (_biometricHardwareAvailable) ...[
             SwitchListTile(
               title: const Text('Biometric Unlock'),
-              subtitle: const Text('Unlock vault with fingerprint or face recognition'),
+              subtitle: const Text('Unlock vault with fingerprint or face'),
               value: settings.biometricPreferred,
-              activeThumbColor: theme.colorScheme.primary,
               onChanged: (val) async {
-                try {
-                  if (authState is AuthUnlocked) {
-                    await ref.read(authNotifierProvider.notifier).toggleBiometrics(val);
-                    await ref.read(settingsNotifierProvider.notifier).updateBiometricPreferred(val);
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Must be unlocked to configure biometrics')),
-                    );
+                if (val) {
+                  final bioService = ref.read(biometricServiceProvider);
+                  final authenticated = await bioService.authenticate(
+                    'Enable biometric login',
+                  );
+                  if (authenticated) {
+                    ref.read(settingsNotifierProvider.notifier).updateBiometricPreferred(true);
                   }
-                } catch (e) {
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(e.toString()),
-                        backgroundColor: Colors.redAccent,
-                      ),
-                    );
-                  }
+                } else {
+                  ref.read(settingsNotifierProvider.notifier).updateBiometricPreferred(false);
                 }
               },
             ),
@@ -155,7 +145,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             subtitle: const Text('Locks vault after selected idle period'),
             trailing: DropdownButton<int>(
               value: settings.autoLockTimeoutSeconds,
-              dropdownColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+              dropdownColor: colors.surfacePrimary,
               onChanged: (val) {
                 if (val != null) {
                   ref.read(settingsNotifierProvider.notifier).updateAutoLockTimeout(val);
@@ -177,7 +167,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             subtitle: const Text('Clears credentials copied to clipboard'),
             trailing: DropdownButton<int>(
               value: settings.clipboardClearDurationSeconds,
-              dropdownColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+              dropdownColor: colors.surfacePrimary,
               onChanged: (val) {
                 if (val != null) {
                   ref.read(settingsNotifierProvider.notifier).updateClipboardClearDuration(val);
@@ -193,13 +183,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           const Divider(),
 
           // Section 2: Appearance settings
-          _buildSectionHeader('Appearance', theme),
+          _buildSectionHeader('Appearance', colors),
           ListTile(
             title: const Text('Theme Mode'),
             subtitle: const Text('Switch between light and dark backgrounds'),
             trailing: DropdownButton<String>(
               value: settings.themeMode,
-              dropdownColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+              dropdownColor: colors.surfacePrimary,
               onChanged: (val) {
                 if (val != null) {
                   ref.read(settingsNotifierProvider.notifier).updateThemeMode(val);
@@ -215,7 +205,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           const Divider(),
 
           // Section 3: Storage Reset
-          _buildSectionHeader('Storage & Management', theme),
+          _buildSectionHeader('Storage & Management', colors),
           ListTile(
             title: const Text(
               'Sign Out / Change Account',
@@ -223,39 +213,39 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
             subtitle: const Text('Wipes local vault data and signs out (Cloud data remains safe)'),
             leading: const Icon(Icons.logout_rounded),
-            onTap: _showSignOutConfirmation,
+            onTap: () => _showSignOutConfirmation(colors),
           ),
           const Divider(),
           ListTile(
-            title: const Text(
+            title: Text(
               'Reset SecureVault',
-              style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold),
+              style: TextStyle(color: colors.error, fontWeight: FontWeight.bold),
             ),
             subtitle: const Text('Wipes all local credentials and reset encryption setup'),
-            leading: const Icon(Icons.delete_forever, color: Colors.redAccent),
-            onTap: _showFactoryResetConfirmation,
+            leading: Icon(Icons.delete_forever, color: colors.error),
+            onTap: () => _showFactoryResetConfirmation(colors),
           ),
           const Divider(),
 
           // Section 4: About
-          _buildSectionHeader('About', theme),
+          _buildSectionHeader('About', colors),
           ListTile(
             title: const Text('SecureVault'),
             subtitle: const Text('Version 1.0.0 — Offline-First & Encrypted'),
-            trailing: Icon(Icons.security, color: theme.colorScheme.primary.withValues(alpha: 0.5)),
+            trailing: Icon(Icons.security, color: colors.brandPrimary.withValues(alpha: 0.5)),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildSectionHeader(String title, ThemeData theme) {
+  Widget _buildSectionHeader(String title, AppColorsExtension colors) {
     return Padding(
       padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 8),
       child: Text(
         title,
         style: TextStyle(
-          color: theme.colorScheme.primary,
+          color: colors.brandPrimary,
           fontWeight: FontWeight.bold,
           fontSize: 13,
           letterSpacing: 0.8,

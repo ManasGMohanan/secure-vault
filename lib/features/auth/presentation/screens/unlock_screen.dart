@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:secure_vault/features/auth/domain/entities/auth_state.dart';
+import 'package:secure_vault/core/theme/theme.dart';
 import '../providers/auth_notifier.dart';
 
 class UnlockScreen extends ConsumerStatefulWidget {
@@ -34,7 +35,9 @@ class _UnlockScreenState extends ConsumerState<UnlockScreen> {
 
   Future<void> _checkAndTriggerBiometrics() async {
     final authState = ref.read(authNotifierProvider).valueOrNull;
-    if (authState is AuthLocked && authState.biometricEnabled && !authState.hasAttemptedBiometrics) {
+    if (authState is AuthLocked &&
+        authState.biometricEnabled &&
+        !authState.hasAttemptedBiometrics) {
       await ref.read(authNotifierProvider.notifier).unlockWithBiometrics();
     }
   }
@@ -62,7 +65,7 @@ class _UnlockScreenState extends ConsumerState<UnlockScreen> {
 
   void _showForgotWarning() {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final colors = theme.extension<AppColorsExtension>()!;
 
     showModalBottomSheet(
       context: context,
@@ -88,9 +91,7 @@ class _UnlockScreenState extends ConsumerState<UnlockScreen> {
                 Text(
                   'To protect your data, all vault contents are encrypted on this device. We do not store your master password on any servers, meaning we cannot reset it or recover your files.',
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color: isDark
-                        ? Colors.grey.shade400
-                        : Colors.grey.shade600,
+                    color: colors.textMuted,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -98,10 +99,11 @@ class _UnlockScreenState extends ConsumerState<UnlockScreen> {
                 ElevatedButton(
                   onPressed: () {
                     Navigator.of(context).pop();
-                    _showWipeConfirmation();
+                    _showWipeConfirmation(colors);
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.redAccent,
+                    backgroundColor: colors.error,
+                    foregroundColor: colors.textOnBrand,
                   ),
                   child: const Text('Reset Vault (Wipe Data)'),
                 ),
@@ -118,7 +120,7 @@ class _UnlockScreenState extends ConsumerState<UnlockScreen> {
     );
   }
 
-  void _showWipeConfirmation() {
+  void _showWipeConfirmation(AppColorsExtension colors) {
     showDialog(
       context: context,
       builder: (dialogContext) {
@@ -137,7 +139,7 @@ class _UnlockScreenState extends ConsumerState<UnlockScreen> {
                 Navigator.of(dialogContext).pop();
                 ref.read(authNotifierProvider.notifier).factoryReset();
               },
-              style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
+              style: TextButton.styleFrom(foregroundColor: colors.error),
               child: const Text('Wipe Everything'),
             ),
           ],
@@ -150,14 +152,14 @@ class _UnlockScreenState extends ConsumerState<UnlockScreen> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authNotifierProvider);
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final colors = theme.extension<AppColorsExtension>()!;
 
     ref.listen<AsyncValue>(authNotifierProvider, (previous, next) {
       if (next is AsyncError) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(next.error.toString()),
-            backgroundColor: Colors.redAccent,
+            backgroundColor: colors.error,
           ),
         );
       }
@@ -165,15 +167,15 @@ class _UnlockScreenState extends ConsumerState<UnlockScreen> {
 
     // Check if we should auto-trigger biometrics once state loads
     final stateVal = authState.valueOrNull;
-    if (stateVal is AuthLocked && stateVal.biometricEnabled && !stateVal.hasAttemptedBiometrics) {
+    if (stateVal is AuthLocked &&
+        stateVal.biometricEnabled &&
+        !stateVal.hasAttemptedBiometrics) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ref.read(authNotifierProvider.notifier).unlockWithBiometrics();
       });
     }
 
-    final isLockedWithBio =
-        stateVal is AuthLocked &&
-        stateVal.biometricEnabled;
+    final isLockedWithBio = stateVal is AuthLocked && stateVal.biometricEnabled;
 
     return Scaffold(
       body: Center(
@@ -188,16 +190,17 @@ class _UnlockScreenState extends ConsumerState<UnlockScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   SvgPicture.asset(
-                    'assets/app_logo.svg',
+                    'assets/images/svg/securevault_logo.svg',
                     height: 80,
                   ),
                   const SizedBox(height: 24),
                   Text(
                     'Vault Locked',
                     style: theme.textTheme.headlineLarge?.copyWith(
+                      fontFamily: 'Helvetica Rounded LT Std',
                       fontWeight: FontWeight.bold,
                       letterSpacing: -0.5,
-                      color: isDark ? Colors.white : const Color(0xFF0F172A),
+                      color: colors.textPrimary,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -205,9 +208,7 @@ class _UnlockScreenState extends ConsumerState<UnlockScreen> {
                   Text(
                     'Enter your master password to unlock your secure credentials.',
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      color: isDark
-                          ? Colors.grey.shade400
-                          : Colors.grey.shade600,
+                      color: colors.textMuted,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -247,11 +248,11 @@ class _UnlockScreenState extends ConsumerState<UnlockScreen> {
                           padding: const EdgeInsets.all(12),
                           icon: Icon(
                             Icons.fingerprint_rounded,
-                            color: theme.colorScheme.primary,
+                            color: colors.brandPrimary,
                           ),
                           style: IconButton.styleFrom(
                             side: BorderSide(
-                              color: theme.colorScheme.primary,
+                              color: colors.brandPrimary,
                               width: 1.5,
                             ),
                             shape: RoundedRectangleBorder(
@@ -272,12 +273,12 @@ class _UnlockScreenState extends ConsumerState<UnlockScreen> {
                         child: ElevatedButton(
                           onPressed: authState.isLoading ? null : _submit,
                           child: _isPasswordSubmitting && authState.isLoading
-                              ? const SizedBox(
+                              ? SizedBox(
                                   height: 20,
                                   width: 20,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
-                                    color: Colors.white,
+                                    color: colors.textOnBrand,
                                   ),
                                 )
                               : const Text('Unlock'),
@@ -290,11 +291,7 @@ class _UnlockScreenState extends ConsumerState<UnlockScreen> {
                     onPressed: _showForgotWarning,
                     child: Text(
                       'Forgot Password?',
-                      style: TextStyle(
-                        color: isDark
-                            ? Colors.grey.shade400
-                            : Colors.grey.shade600,
-                      ),
+                      style: TextStyle(color: colors.textMuted),
                     ),
                   ),
                 ],

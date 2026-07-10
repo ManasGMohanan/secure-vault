@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:secure_vault/core/theme/theme.dart';
 import '../../../password_generator/domain/password_generator.dart';
 import '../providers/auth_notifier.dart';
 
@@ -37,7 +38,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmController = TextEditingController();
-  
+
   bool _obscurePassword = true;
   bool _obscureConfirm = true;
   bool _isRestoreMode = false;
@@ -59,7 +60,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    
+
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
@@ -69,10 +70,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           .restoreSyncedAccount(email, password);
     } else {
       if (_strength == PasswordStrength.weak) {
+        final colors = Theme.of(context).extension<AppColorsExtension>()!;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please choose a stronger master password.'),
-            backgroundColor: Colors.redAccent,
+          SnackBar(
+            content: const Text('Please choose a stronger master password.'),
+            backgroundColor: colors.error,
           ),
         );
         return;
@@ -84,15 +86,17 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 
   Color _getStrengthColor() {
+    final colors = Theme.of(context).extension<AppColorsExtension>()!;
     switch (_strength) {
       case PasswordStrength.weak:
-        return Colors.redAccent;
+        return colors.error;
       case PasswordStrength.medium:
-        return Colors.orangeAccent;
+        return colors
+            .brandAccent; // Uses brandAccent to avoid inventing non-palette warning colors
       case PasswordStrength.strong:
-        return Colors.tealAccent.shade400;
+        return colors.successForeground;
       case PasswordStrength.veryStrong:
-        return Colors.teal.shade400;
+        return colors.success;
     }
   }
 
@@ -113,14 +117,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authNotifierProvider);
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final colors = theme.extension<AppColorsExtension>()!;
 
     ref.listen<AsyncValue>(authNotifierProvider, (previous, next) {
       if (next is AsyncError) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(next.error.toString()),
-            backgroundColor: Colors.redAccent,
+            backgroundColor: colors.error,
           ),
         );
       }
@@ -139,28 +143,29 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   SvgPicture.asset(
-                    'assets/app_logo.svg',
+                    'assets/images/svg/securevault_logo.svg',
                     height: 80,
                   ),
                   const SizedBox(height: 24),
-                  
+
                   Text(
                     'SecureVault',
                     style: theme.textTheme.headlineLarge?.copyWith(
+                      fontFamily: 'Helvetica Rounded LT Std',
                       fontWeight: FontWeight.bold,
                       letterSpacing: -0.5,
-                      color: isDark ? Colors.white : const Color(0xFF0F172A),
+                      color: colors.textPrimary,
                     ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 8),
-                  
+
                   Text(
                     _isRestoreMode
                         ? 'Sign in with your email to restore your encrypted credentials from the cloud.'
                         : 'Create your account to sync your credentials across all your devices securely.',
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+                      color: colors.textMuted,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -193,7 +198,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     controller: _passwordController,
                     obscureText: _obscurePassword,
                     onChanged: _isRestoreMode ? null : _onPasswordChanged,
-                    textInputAction: _isRestoreMode ? TextInputAction.done : TextInputAction.next,
+                    textInputAction: _isRestoreMode
+                        ? TextInputAction.done
+                        : TextInputAction.next,
                     onFieldSubmitted: _isRestoreMode ? (_) => _submit() : null,
                     style: const TextStyle(fontSize: 16),
                     decoration: InputDecoration(
@@ -201,9 +208,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       prefixIcon: const Icon(Icons.lock_outline),
                       suffixIcon: IconButton(
                         icon: Icon(
-                          _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                          _obscurePassword
+                              ? Icons.visibility_off_outlined
+                              : Icons.visibility_outlined,
                         ),
-                        onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                        onPressed: () => setState(
+                          () => _obscurePassword = !_obscurePassword,
+                        ),
                       ),
                     ),
                     validator: (val) {
@@ -219,7 +230,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   const SizedBox(height: 12),
 
                   // Password strength meter (only in registration mode)
-                  if (!_isRestoreMode && _passwordController.text.isNotEmpty) ...[
+                  if (!_isRestoreMode &&
+                      _passwordController.text.isNotEmpty) ...[
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -241,7 +253,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                           child: LinearProgressIndicator(
                             value: _getStrengthPercentage(),
                             color: _getStrengthColor(),
-                            backgroundColor: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
+                            backgroundColor: colors.surfaceSecondary,
                             minHeight: 6,
                           ),
                         ),
@@ -263,9 +275,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         prefixIcon: const Icon(Icons.lock_outline),
                         suffixIcon: IconButton(
                           icon: Icon(
-                            _obscureConfirm ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                            _obscureConfirm
+                                ? Icons.visibility_off_outlined
+                                : Icons.visibility_outlined,
                           ),
-                          onPressed: () => setState(() => _obscureConfirm = !_obscureConfirm),
+                          onPressed: () => setState(
+                            () => _obscureConfirm = !_obscureConfirm,
+                          ),
                         ),
                       ),
                       validator: (val) {
@@ -282,14 +298,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: isDark 
-                          ? Colors.orange.withValues(alpha: 0.1) 
-                          : Colors.orange.shade50,
+                      color: colors.surfaceSecondary,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: isDark 
-                          ? Colors.orangeAccent.withValues(alpha: 0.3) 
-                          : Colors.orange.shade200,
+                        color: colors.brandAccent.withValues(alpha: 0.3),
                       ),
                     ),
                     child: Row(
@@ -297,14 +309,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       children: [
                         Icon(
                           Icons.warning_amber_rounded,
-                          color: isDark ? Colors.orangeAccent : Colors.orange.shade700,
+                          color: colors.brandAccent,
                         ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
                             'Warning: Losing your Master Password means your vault is unrecoverable. Resetting your account login credentials will not recover your vault.',
                             style: theme.textTheme.bodySmall?.copyWith(
-                              color: isDark ? Colors.orangeAccent : Colors.orange.shade800,
+                              color: colors.textSecondary,
                               height: 1.4,
                             ),
                           ),
@@ -319,7 +331,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       ? const Center(child: CircularProgressIndicator())
                       : ElevatedButton(
                           onPressed: _submit,
-                          child: Text(_isRestoreMode ? 'Restore Vault' : 'Create Vault'),
+                          child: Text(
+                            _isRestoreMode ? 'Restore Vault' : 'Create Vault',
+                          ),
                         ),
                   const SizedBox(height: 16),
 

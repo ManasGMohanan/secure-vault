@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:secure_vault/core/routing/gorouter_extension.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:secure_vault/core/theme/theme.dart';
 import '../../../auth/presentation/providers/auth_notifier.dart';
 import '../../domain/entities/vault_entry.dart';
 import '../../presentation/providers/vault_notifier.dart';
@@ -16,6 +17,7 @@ class VaultScreen extends ConsumerStatefulWidget {
 
 class _VaultScreenState extends ConsumerState<VaultScreen> {
   final _searchController = TextEditingController();
+  String _selectedCategory = 'All';
 
   @override
   void dispose() {
@@ -23,11 +25,11 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
     super.dispose();
   }
 
-  void _copyToClipboard(String value, String type) {
+  void _copyToClipboard(String value, String label) {
     Clipboard.setData(ClipboardData(text: value));
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('$type copied to clipboard!'),
+        content: Text('$label copied to clipboard!'),
         behavior: SnackBarBehavior.floating,
         duration: const Duration(seconds: 2),
       ),
@@ -36,11 +38,41 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final filteredEntries = ref.watch(filteredVaultEntriesProvider);
-    final selectedCategory = ref.watch(vaultSelectedCategoryProvider);
-    final reusedPwds = ref.watch(reusedPasswordsProvider);
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final colors = theme.extension<AppColorsExtension>()!;
+
+    final vaultState = ref.watch(vaultNotifierProvider);
+    final allEntries = vaultState.valueOrNull ?? [];
+
+    // Filter by search query
+    final query = _searchController.text.toLowerCase();
+    final searchedEntries = allEntries.where((entry) {
+      final matchesQuery =
+          entry.title.toLowerCase().contains(query) ||
+          entry.username.toLowerCase().contains(query) ||
+          entry.url.toLowerCase().contains(query);
+      return matchesQuery;
+    }).toList();
+
+    // Find reused passwords
+    final pwdCounts = <String, int>{};
+    for (final e in allEntries) {
+      final p = e.password.trim();
+      if (p.isNotEmpty) {
+        pwdCounts[p] = (pwdCounts[p] ?? 0) + 1;
+      }
+    }
+    final reusedPwds = pwdCounts.entries
+        .where((entry) => entry.value > 1)
+        .map((entry) => entry.key)
+        .toSet();
+
+    // Filter by category tab
+    final filteredEntries = searchedEntries.where((entry) {
+      if (_selectedCategory == 'All') return true;
+      if (_selectedCategory == 'Favorites') return entry.isFavorite;
+      return entry.category.toLowerCase() == _selectedCategory.toLowerCase();
+    }).toList();
 
     final categories = [
       'All',
@@ -80,29 +112,24 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
             ),
             child: TextField(
               controller: _searchController,
-              onChanged: (val) {
-                ref.read(vaultSearchQueryProvider.notifier).setQuery(val);
-              },
+              onChanged: (_) => setState(() {}),
               decoration: InputDecoration(
                 hintText: 'Search title, username, or URL...',
-                prefixIcon: const Icon(Icons.search_rounded),
+                prefixIcon: const Icon(Icons.search),
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
-                        icon: const Icon(Icons.clear_rounded),
+                        icon: const Icon(Icons.clear),
                         onPressed: () {
                           _searchController.clear();
-                          ref
-                              .read(vaultSearchQueryProvider.notifier)
-                              .setQuery('');
+                          setState(() {});
                         },
                       )
                     : null,
-                contentPadding: const EdgeInsets.symmetric(vertical: 12),
               ),
             ),
           ),
 
-          // Category Chips Row
+          // Categories horizontal scroll bar
           SizedBox(
             height: 50,
             child: ListView.builder(
@@ -111,31 +138,28 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
               itemCount: categories.length,
               itemBuilder: (context, index) {
                 final category = categories[index];
-                final isSelected = selectedCategory == category;
+                final isSelected = category == _selectedCategory;
                 return Padding(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 4.0,
-                    vertical: 8.0,
+                    horizontal: 4,
+                    vertical: 8,
                   ),
                   child: ChoiceChip(
                     label: Text(category),
                     selected: isSelected,
                     onSelected: (selected) {
                       if (selected) {
-                        ref
-                            .read(vaultSelectedCategoryProvider.notifier)
-                            .setCategory(category);
+                        setState(() {
+                          _selectedCategory = category;
+                        });
                       }
                     },
-                    selectedColor: theme.colorScheme.primary.withValues(
-                      alpha: 0.15,
-                    ),
+                    selectedColor: colors.brandPrimary.withValues(alpha: 0.15),
+                    backgroundColor: Colors.transparent,
                     labelStyle: TextStyle(
                       color: isSelected
-                          ? theme.colorScheme.primary
-                          : (isDark
-                                ? Colors.grey.shade300
-                                : Colors.grey.shade600),
+                          ? colors.brandPrimary
+                          : colors.textMuted,
                       fontWeight: isSelected
                           ? FontWeight.w600
                           : FontWeight.w500,
@@ -145,10 +169,8 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
                     ),
                     side: BorderSide(
                       color: isSelected
-                          ? theme.colorScheme.primary.withValues(alpha: 0.5)
-                          : (isDark
-                                ? const Color(0xFF334155)
-                                : const Color(0xFFE2E8F0)),
+                          ? colors.brandPrimary.withValues(alpha: 0.5)
+                          : colors.borderDefault,
                     ),
                   ),
                 );
@@ -159,7 +181,7 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
           // Entries List
           Expanded(
             child: filteredEntries.isEmpty
-                ? _buildEmptyState(theme, isDark)
+                ? _buildEmptyState(theme, colors)
                 : ListView.builder(
                     padding: const EdgeInsets.all(16.0),
                     itemCount: filteredEntries.length,
@@ -173,7 +195,7 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
                         entry,
                         isReused,
                         theme,
-                        isDark,
+                        colors,
                       );
                     },
                   ),
@@ -183,7 +205,7 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
     );
   }
 
-  Widget _buildEmptyState(ThemeData theme, bool isDark) {
+  Widget _buildEmptyState(ThemeData theme, AppColorsExtension colors) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -191,22 +213,20 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
           Icon(
             Icons.folder_open_outlined,
             size: 64,
-            color: isDark ? Colors.grey.shade600 : Colors.grey.shade400,
+            color: colors.textDisabled,
           ),
           const SizedBox(height: 16),
           Text(
             'No credentials found',
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
-              color: isDark ? Colors.grey.shade300 : Colors.grey.shade600,
+              color: colors.textSecondary,
             ),
           ),
           const SizedBox(height: 6),
           Text(
             'Tap the + button to add a new account.',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: isDark ? Colors.grey.shade500 : Colors.grey.shade400,
-            ),
+            style: theme.textTheme.bodySmall?.copyWith(color: colors.textMuted),
           ),
         ],
       ),
@@ -218,15 +238,15 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
     VaultEntry entry,
     bool isReused,
     ThemeData theme,
-    bool isDark,
+    AppColorsExtension colors,
   ) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         leading: CircleAvatar(
-          backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.1),
-          foregroundColor: theme.colorScheme.primary,
+          backgroundColor: colors.brandPrimary.withValues(alpha: 0.1),
+          foregroundColor: colors.brandPrimary,
           child: Icon(_getCategoryIcon(entry.category)),
         ),
         title: Row(
@@ -250,7 +270,7 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
                 message: 'Warning: This password is reused across accounts!',
                 child: Icon(
                   Icons.warning_amber_rounded,
-                  color: Colors.orangeAccent.shade700,
+                  color: colors.error, // Safe error warning mapping
                   size: 18,
                 ),
               ),
@@ -263,10 +283,7 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
             const SizedBox(height: 4),
             Text(
               entry.username.isNotEmpty ? entry.username : '(No username)',
-              style: TextStyle(
-                color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
-                fontSize: 14,
-              ),
+              style: TextStyle(color: colors.textMuted, fontSize: 14),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
