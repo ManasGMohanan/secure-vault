@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'app_palette.dart';
 import 'app_colors_extension.dart';
 
 ThemeData getDarkTheme() {
-  final baseTextTheme = ThemeData(brightness: Brightness.dark).textTheme;
-  
   return ThemeData(
     useMaterial3: true,
     brightness: Brightness.dark,
-    fontFamily: GoogleFonts.inter().fontFamily,
+    fontFamily: 'Helvetica',
     colorScheme: ColorScheme.fromSeed(
       seedColor: AppPalette.darkBlue3,
       brightness: Brightness.dark,
@@ -20,7 +17,6 @@ ThemeData getDarkTheme() {
       error: AppPalette.darkError1,
     ),
     scaffoldBackgroundColor: AppPalette.darkBlack3,
-    textTheme: GoogleFonts.interTextTheme(baseTextTheme),
     cardTheme: CardThemeData(
       color: AppPalette.darkBlack1,
       elevation: 0,
@@ -29,15 +25,16 @@ ThemeData getDarkTheme() {
         side: const BorderSide(color: AppPalette.darkGrey1, width: 1),
       ),
     ),
-    appBarTheme: AppBarTheme(
+    appBarTheme: const AppBarTheme(
       backgroundColor: AppPalette.darkBlack3,
       elevation: 0,
       centerTitle: true,
-      iconTheme: const IconThemeData(color: AppPalette.darkWhite),
-      titleTextStyle: GoogleFonts.inter(
+      iconTheme: IconThemeData(color: AppPalette.darkWhite),
+      titleTextStyle: TextStyle(
+        fontFamily: 'Helvetica Rounded LT Std',
         color: AppPalette.darkWhite,
         fontSize: 20,
-        fontWeight: FontWeight.w600,
+        fontWeight: FontWeight.bold,
       ),
     ),
     inputDecorationTheme: InputDecorationTheme(
@@ -69,7 +66,7 @@ ThemeData getDarkTheme() {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
         ),
-        textStyle: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600),
+        textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
       ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
@@ -80,7 +77,7 @@ ThemeData getDarkTheme() {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
         ),
-        textStyle: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600),
+        textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
       ),
     ),
     extensions: [
@@ -106,8 +103,8 @@ ThemeData getDarkTheme() {
         successBackground: AppPalette.darkSuccess1,
         successForeground: AppPalette.darkSuccess3,
         error: AppPalette.darkError1,
-        errorBackground: AppPalette.darkBlack1, // Validated for accessibility: #011F2D has ~13.8:1 contrast with #EA9E9E
-        errorForeground: AppPalette.darkError2, // Light red text (#EA9E9E)
+        errorBackground: AppPalette.darkBlack1,
+        errorForeground: AppPalette.darkError2,
       ),
     ],
   );

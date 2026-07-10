@@ -151,6 +151,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   Text(
                     'SecureVault',
                     style: theme.textTheme.headlineLarge?.copyWith(
+                      fontFamily: 'Helvetica Rounded LT Std',
                       fontWeight: FontWeight.bold,
                       letterSpacing: -0.5,
                       color: colors.textPrimary,

@@ -47,7 +47,8 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
     // Filter by search query
     final query = _searchController.text.toLowerCase();
     final searchedEntries = allEntries.where((entry) {
-      final matchesQuery = entry.title.toLowerCase().contains(query) ||
+      final matchesQuery =
+          entry.title.toLowerCase().contains(query) ||
           entry.username.toLowerCase().contains(query) ||
           entry.url.toLowerCase().contains(query);
       return matchesQuery;
@@ -88,16 +89,16 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
         title: const Text('SecureVault'),
         actions: [
           IconButton(
-            icon: const Icon(LucideIcons.settings),
-            tooltip: 'Settings',
-            onPressed: () => context.goToSettings(),
-          ),
-          IconButton(
             icon: const Icon(Icons.lock_open_rounded),
             tooltip: 'Lock Vault',
             onPressed: () {
               ref.read(authNotifierProvider.notifier).lock();
             },
+          ),
+          IconButton(
+            icon: const Icon(LucideIcons.settings),
+            tooltip: 'Settings',
+            onPressed: () => context.goToSettings(),
           ),
         ],
       ),
@@ -105,7 +106,10 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
         children: [
           // Search Bar
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 8.0,
+            ),
             child: TextField(
               controller: _searchController,
               onChanged: (_) => setState(() {}),
@@ -136,7 +140,10 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
                 final category = categories[index];
                 final isSelected = category == _selectedCategory;
                 return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 4,
+                    vertical: 8,
+                  ),
                   child: ChoiceChip(
                     label: Text(category),
                     selected: isSelected,
@@ -219,9 +226,7 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
           const SizedBox(height: 6),
           Text(
             'Tap the + button to add a new account.',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: colors.textMuted,
-            ),
+            style: theme.textTheme.bodySmall?.copyWith(color: colors.textMuted),
           ),
         ],
       ),
@@ -278,10 +283,7 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
             const SizedBox(height: 4),
             Text(
               entry.username.isNotEmpty ? entry.username : '(No username)',
-              style: TextStyle(
-                color: colors.textMuted,
-                fontSize: 14,
-              ),
+              style: TextStyle(color: colors.textMuted, fontSize: 14),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),

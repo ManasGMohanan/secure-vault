@@ -197,6 +197,7 @@ class _UnlockScreenState extends ConsumerState<UnlockScreen> {
                   Text(
                     'Vault Locked',
                     style: theme.textTheme.headlineLarge?.copyWith(
+                      fontFamily: 'Helvetica Rounded LT Std',
                       fontWeight: FontWeight.bold,
                       letterSpacing: -0.5,
                       color: colors.textPrimary,

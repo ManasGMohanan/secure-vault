@@ -50,7 +50,6 @@ dependencies:
   # UI & Icons
   flutter_svg: ^2.0.10+1
   web: ^1.1.1
-  google_fonts: ^6.2.1
   lucide_icons_flutter: ^3.1.14+2
 
 
@@ -80,15 +79,17 @@ flutter:
     - assets/fonts/
 
   fonts:
-    - family: Inter
+    - family: Helvetica
       fonts:
-        - asset: assets/fonts/Inter-Regular.ttf
+        - asset: assets/fonts/Helvetica-Light.ttf
+          weight: 300
+        - asset: assets/fonts/Helvetica-Regular.ttf
           weight: 400
-        - asset: assets/fonts/Inter-Medium.ttf
-          weight: 500
-        - asset: assets/fonts/Inter-SemiBold.ttf
-          weight: 600
-        - asset: assets/fonts/Inter-Bold.ttf
+        - asset: assets/fonts/Helvetica-Bold.ttf
+          weight: 700
+    - family: Helvetica Rounded LT Std
+      fonts:
+        - asset: assets/fonts/Helvetica-Rounded-Bold.otf
           weight: 700
 
 flutter_launcher_icons:

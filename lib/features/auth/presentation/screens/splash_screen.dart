@@ -24,6 +24,7 @@ class SplashScreen extends StatelessWidget {
             Text(
               'SecureVault',
               style: theme.textTheme.headlineMedium?.copyWith(
+                fontFamily: 'Helvetica Rounded LT Std',
                 fontWeight: FontWeight.bold,
                 letterSpacing: -0.5,
                 color: colors.textPrimary,
