@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:secure_vault/core/routing/gorouter_extension.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../auth/presentation/providers/auth_notifier.dart';
 import '../../domain/entities/vault_entry.dart';
 import '../../presentation/providers/vault_notifier.dart';
@@ -62,13 +63,12 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
               ref.read(authNotifierProvider.notifier).lock();
             },
           ),
+          IconButton(
+            icon: const Icon(LucideIcons.settings),
+            tooltip: 'Settings',
+            onPressed: () => context.goToSettings(),
+          ),
         ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => context.goToNewEntry(),
-        backgroundColor: theme.colorScheme.primary,
-        foregroundColor: Colors.white,
-        child: const Icon(Icons.add),
       ),
       body: Column(
         children: [
@@ -127,7 +127,9 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
                             .setCategory(category);
                       }
                     },
-                    selectedColor: theme.colorScheme.primary.withValues(alpha: 0.15),
+                    selectedColor: theme.colorScheme.primary.withValues(
+                      alpha: 0.15,
+                    ),
                     labelStyle: TextStyle(
                       color: isSelected
                           ? theme.colorScheme.primary

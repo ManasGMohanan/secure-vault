@@ -4,6 +4,7 @@ import '../../../../core/security/biometric_service.dart';
 import '../../../auth/presentation/providers/auth_notifier.dart';
 import '../../../auth/domain/entities/auth_state.dart';
 import '../../presentation/providers/settings_notifier.dart';
+import 'package:secure_vault/core/routing/gorouter_extension.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -99,6 +100,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Settings'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            if (Navigator.of(context).canPop()) {
+              Navigator.of(context).pop();
+            } else {
+              context.goToHome();
+            }
+          },
+        ),
       ),
       body: ListView(
         padding: const EdgeInsets.symmetric(vertical: 8),

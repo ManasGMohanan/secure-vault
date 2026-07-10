@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:secure_vault/core/widgets/main_layout_screen.dart';
 
 import '../../features/auth/domain/entities/auth_state.dart';
 import '../../features/auth/presentation/providers/auth_notifier.dart';
@@ -14,7 +14,6 @@ import '../../features/settings/presentation/screens/settings_screen.dart';
 import '../../features/vault/presentation/screens/add_edit_entry_screen.dart';
 import '../../features/vault/presentation/screens/vault_entry_detail_screen.dart';
 import '../../features/vault/presentation/screens/vault_screen.dart';
-import 'gorouter_extension.dart';
 import 'router_transition.dart';
 
 part 'app_router.g.dart';
@@ -95,8 +94,9 @@ GoRouter appRouter(AppRouterRef ref) {
       } else if (authState is AuthLocked) {
         if (!isGoingToUnlock) result = '/unlock';
       } else if (authState is AuthUnlocked) {
-        if (isGoingToOnboarding || isGoingToUnlock || isGoingToSplash)
+        if (isGoingToOnboarding || isGoingToUnlock || isGoingToSplash) {
           result = '/';
+        }
       }
 
       return result;
@@ -154,6 +154,15 @@ GoRouter appRouter(AppRouterRef ref) {
         ),
       ),
 
+      GoRoute(
+        path: '/settings',
+        pageBuilder: (context, state) => RouterTransition.slideUp(
+          context: context,
+          state: state,
+          child: const SettingsScreen(),
+        ),
+      ),
+
       // Shell Route for bottom navigation
       ShellRoute(
         navigatorKey: shellNavigatorKey,
@@ -177,107 +186,8 @@ GoRouter appRouter(AppRouterRef ref) {
               child: const PasswordGeneratorScreen(),
             ),
           ),
-          GoRoute(
-            path: '/settings',
-            pageBuilder: (context, state) => RouterTransition.fade(
-              context: context,
-              state: state,
-              child: const SettingsScreen(),
-            ),
-          ),
         ],
       ),
     ],
   );
-}
-
-/// The base main layout containing the premium bottom navigation bar.
-class MainLayoutScreen extends StatelessWidget {
-  final Widget child;
-  const MainLayoutScreen({super.key, required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    final location = GoRouterState.of(context).matchedLocation;
-    int currentIndex = 0;
-    if (location.startsWith('/generator')) {
-      currentIndex = 1;
-    } else if (location.startsWith('/settings')) {
-      currentIndex = 2;
-    }
-
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    return Scaffold(
-      body: child,
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          border: Border(
-            top: BorderSide(
-              color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
-              width: 1,
-            ),
-          ),
-        ),
-        child: Theme(
-          data: theme.copyWith(
-            splashColor: Colors.transparent,
-            highlightColor: Colors.transparent,
-            hoverColor: Colors.transparent,
-          ),
-          child: BottomNavigationBar(
-            currentIndex: currentIndex,
-            backgroundColor: isDark ? const Color(0xFF0F172A) : Colors.white,
-            selectedItemColor: theme.colorScheme.primary,
-            unselectedItemColor: isDark
-                ? Colors.grey.shade500
-                : Colors.grey.shade400,
-            elevation: 0,
-            type: BottomNavigationBarType.fixed,
-            selectedLabelStyle: const TextStyle(
-              fontWeight: FontWeight.w600,
-              fontSize: 12,
-            ),
-            unselectedLabelStyle: const TextStyle(
-              fontWeight: FontWeight.w500,
-              fontSize: 12,
-            ),
-            onTap: (index) {
-              if (index == 0) {
-                context.goToHome();
-              } else if (index == 1) {
-                context.goToGenerator();
-              } else if (index == 2) {
-                context.goToSettings();
-              }
-            },
-            items: const [
-              BottomNavigationBarItem(
-                icon: Padding(
-                  padding: EdgeInsets.only(bottom: 4),
-                  child: Icon(LucideIcons.key),
-                ),
-                label: 'Vault',
-              ),
-              BottomNavigationBarItem(
-                icon: Padding(
-                  padding: EdgeInsets.only(bottom: 4),
-                  child: Icon(LucideIcons.sparkles),
-                ),
-                label: 'Generator',
-              ),
-              BottomNavigationBarItem(
-                icon: Padding(
-                  padding: EdgeInsets.only(bottom: 4),
-                  child: Icon(LucideIcons.settings),
-                ),
-                label: 'Settings',
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }
