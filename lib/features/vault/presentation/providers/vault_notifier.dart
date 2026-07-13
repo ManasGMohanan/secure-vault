@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../auth/domain/entities/auth_state.dart';
 import '../../../auth/presentation/providers/auth_notifier.dart';
@@ -9,36 +10,67 @@ part 'vault_notifier.g.dart';
 
 @Riverpod(keepAlive: true)
 class VaultNotifier extends _$VaultNotifier {
+  bool _hasSyncedThisSession = false;
+
   @override
   FutureOr<List<VaultEntry>> build() async {
     final authStateAsync = ref.watch(authNotifierProvider);
+    debugPrint('[VAULT_NOTIFIER] build() triggered. AuthStateAsync = $authStateAsync');
 
     return authStateAsync.when(
       data: (auth) async {
         final repo = ref.read(vaultRepositoryProvider);
+        debugPrint('[VAULT_NOTIFIER] build() data listener: auth state class = ${auth.runtimeType}');
         if (auth is AuthUnlocked) {
-          // Open box with derived key
+          debugPrint('[VAULT_NOTIFIER] build(): Vault is Unlocked. Opening box with derived key...');
           await repo.openBox(auth.derivedKey);
           
-          // Trigger remote sync in the background
-          _triggerBackgroundSync(repo);
+          // Trigger remote sync in the background exactly once per unlock session
+          if (!_hasSyncedThisSession) {
+            debugPrint('[VAULT_NOTIFIER] build(): First unlock in session. Triggering background sync...');
+            _hasSyncedThisSession = true;
+            _triggerBackgroundSync(repo);
+          } else {
+            debugPrint('[VAULT_NOTIFIER] build(): Sync already triggered for this session. Skipping.');
+          }
           
-          return await repo.getEntries();
+          final entries = await repo.getEntries();
+          debugPrint('[VAULT_NOTIFIER] build(): Fetched ${entries.length} entries from repository.');
+          return entries;
         } else {
-          // Close box when locked or uninitialized
+          debugPrint('[VAULT_NOTIFIER] build(): Vault is not unlocked. Closing box and resetting session sync flag...');
+          _hasSyncedThisSession = false;
           await repo.closeBox();
           return const [];
         }
       },
-      loading: () => const [],
-      error: (err, stack) => throw err,
+      loading: () {
+        debugPrint('[VAULT_NOTIFIER] build() loading listener triggered.');
+        return const [];
+      },
+      error: (err, stack) {
+        debugPrint('[VAULT_NOTIFIER] build() error listener triggered: $err');
+        throw err;
+      },
     );
   }
 
   void _triggerBackgroundSync(VaultRepository repo) {
-    repo.sync().then((_) {
-      ref.invalidateSelf(); // Refresh UI once sync merges data
-    }).catchError((_) {}); // Silent fail for background sync
+    debugPrint('[VAULT_NOTIFIER] _triggerBackgroundSync() started. Triggering repo.sync()...');
+    repo.sync().then((_) async {
+      // Guard against race conditions: check if the vault was locked during sync
+      final authState = ref.read(authNotifierProvider).valueOrNull;
+      if (authState is! AuthUnlocked) {
+        debugPrint('[VAULT_NOTIFIER] sync completed but vault is no longer unlocked. Aborting state update.');
+        return;
+      }
+
+      final freshEntries = await repo.getEntries();
+      state = AsyncData(freshEntries);
+      debugPrint('[VAULT_NOTIFIER] sync completed. State updated with ${freshEntries.length} entries.');
+    }).catchError((err) {
+      debugPrint('[VAULT_NOTIFIER] sync failed in background: $err');
+    });
   }
 
   /// Adds a new vault entry.

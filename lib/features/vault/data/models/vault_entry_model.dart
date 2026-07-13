@@ -73,8 +73,24 @@ class VaultEntryModel with _$VaultEntryModel {
     required List<CustomFieldModel> customFields,
   }) = _VaultEntryModel;
 
-  factory VaultEntryModel.fromJson(Map<String, dynamic> json) =>
-      _$VaultEntryModelFromJson(json);
+  factory VaultEntryModel.fromJson(Map<String, dynamic> json) {
+    final history = json['passwordHistory'] as List?;
+    final fields = json['customFields'] as List?;
+    
+    final Map<String, dynamic> sanitizedJson = Map<String, dynamic>.from(json);
+    if (history != null) {
+      sanitizedJson['passwordHistory'] = history
+          .map((e) => Map<String, dynamic>.from(e as Map))
+          .toList();
+    }
+    if (fields != null) {
+      sanitizedJson['customFields'] = fields
+          .map((e) => Map<String, dynamic>.from(e as Map))
+          .toList();
+    }
+    
+    return _$VaultEntryModelFromJson(sanitizedJson);
+  }
 
   factory VaultEntryModel.fromEntity(VaultEntry entity) => VaultEntryModel(
         id: entity.id,
