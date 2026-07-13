@@ -123,9 +123,13 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
                 hintStyle: TextStyle(color: colors.textMuted),
                 prefixIcon: Icon(Icons.search, color: colors.textSecondary),
                 filled: true,
-                fillColor: theme.brightness == Brightness.dark 
-                    ? colors.surfaceSecondary 
+                fillColor: theme.brightness == Brightness.dark
+                    ? colors.surfaceSecondary
                     : colors.backgroundSecondary,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
                   borderSide: BorderSide.none,
@@ -178,11 +182,13 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
                     },
                     selectedColor: colors.brandPrimary,
                     checkmarkColor: colors.textOnBrand,
-                    backgroundColor: theme.brightness == Brightness.dark 
-                        ? colors.surfaceSecondary 
+                    backgroundColor: theme.brightness == Brightness.dark
+                        ? colors.surfaceSecondary
                         : colors.backgroundSecondary,
                     labelStyle: TextStyle(
-                      color: isSelected ? colors.textOnBrand : colors.textSecondary,
+                      color: isSelected
+                          ? colors.textOnBrand
+                          : colors.textSecondary,
                       fontWeight: isSelected
                           ? FontWeight.w600
                           : FontWeight.w500,

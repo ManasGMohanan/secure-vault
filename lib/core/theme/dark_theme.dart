@@ -28,6 +28,8 @@ ThemeData getDarkTheme() {
     appBarTheme: const AppBarTheme(
       backgroundColor: AppPalette.darkBlack3,
       elevation: 0,
+      scrolledUnderElevation: 0,
+      surfaceTintColor: Colors.transparent,
       centerTitle: false,
       iconTheme: IconThemeData(color: AppPalette.darkWhite),
       titleTextStyle: TextStyle(
