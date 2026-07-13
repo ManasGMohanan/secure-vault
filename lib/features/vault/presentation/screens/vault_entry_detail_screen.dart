@@ -2,8 +2,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:secure_vault/core/routing/gorouter_extension.dart';
 import 'package:secure_vault/core/theme/theme.dart';
+import '../helpers/brand_logo_helper.dart';
 import '../../domain/entities/vault_entry.dart';
 import '../../presentation/providers/vault_notifier.dart';
 import '../../../settings/presentation/providers/settings_notifier.dart';
@@ -145,16 +147,36 @@ class _VaultEntryDetailScreenState
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Category tag
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Chip(
-                label: Text(entry.category),
-                backgroundColor: colors.brandPrimary.withValues(alpha: 0.1),
-                side: BorderSide.none,
-              ),
+            // Brand Logo & Header Row
+            Row(
+              children: [
+                _buildLogoWidget(entry, colors, size: 56),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        entry.title,
+                        style: theme.textTheme.headlineMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: colors.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        entry.category,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: colors.textSecondary,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
 
             // Warning if Reused password
             if (isReused) ...[
@@ -391,6 +413,89 @@ class _VaultEntryDetailScreenState
   String _formatDate(DateTime dt) {
     return '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')} '
         '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+  }
+
+  Widget _buildLogoWidget(VaultEntry entry, AppColorsExtension colors, {double size = 40}) {
+    final domain = getDomainFromUrlOrTitle(entry.url, entry.title);
+    final localPath = getLocalSvgPath(domain, entry.title);
+
+    Widget fallbackAvatar() {
+      final initial = entry.title.trim().isNotEmpty 
+          ? entry.title.trim().substring(0, 1).toUpperCase() 
+          : '?';
+      final bgColor = getBrandColor(entry.title);
+      return Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Center(
+          child: Text(
+            initial,
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: size * 0.4,
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (localPath != null) {
+      return Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        padding: EdgeInsets.all(size * 0.12),
+        child: SvgPicture.asset(
+          localPath,
+          fit: BoxFit.contain,
+        ),
+      );
+    }
+
+    if (domain != null) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          width: size,
+          height: size,
+          decoration: const BoxDecoration(
+            color: Colors.white,
+          ),
+          child: Image.network(
+            getLogoUrl(domain),
+            width: size,
+            height: size,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) => fallbackAvatar(),
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+              return Container(
+                width: size,
+                height: size,
+                color: colors.surfaceSecondary,
+                child: const Center(
+                  child: SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      );
+    }
+
+    return fallbackAvatar();
   }
 }
 
