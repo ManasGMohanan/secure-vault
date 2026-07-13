@@ -28,6 +28,16 @@ class _AddEditEntryScreenState extends ConsumerState<AddEditEntryScreen> {
   String _category = 'Social';
   bool _obscurePassword = true;
   PasswordStrength _strength = PasswordStrength.weak;
+  PasswordCriteriaResult _criteria = const PasswordCriteriaResult(
+    hasMinLength: false,
+    hasMediumLength: false,
+    hasGreatLength: false,
+    hasUppercase: false,
+    hasLowercase: false,
+    hasNumber: false,
+    hasSymbol: false,
+    overallStrength: PasswordStrength.weak,
+  );
 
   // Custom fields tracking
   final List<Map<String, dynamic>> _customFields = [];
@@ -58,6 +68,7 @@ class _AddEditEntryScreenState extends ConsumerState<AddEditEntryScreen> {
       _notesController.text = entry.notes;
       _category = entry.category;
       _strength = PasswordGenerator.estimateStrength(entry.password);
+      _criteria = PasswordGenerator.evaluateCriteria(entry.password);
 
       // Load custom fields
       for (final field in entry.customFields) {
@@ -86,7 +97,8 @@ class _AddEditEntryScreenState extends ConsumerState<AddEditEntryScreen> {
 
   void _onPasswordChanged(String val) {
     setState(() {
-      _strength = PasswordGenerator.estimateStrength(val);
+      _criteria = PasswordGenerator.evaluateCriteria(val);
+      _strength = _criteria.overallStrength;
     });
   }
 
@@ -222,9 +234,10 @@ class _AddEditEntryScreenState extends ConsumerState<AddEditEntryScreen> {
                       );
                       setState(() {
                         _passwordController.text = generated;
-                        _strength = PasswordGenerator.estimateStrength(
+                        _criteria = PasswordGenerator.evaluateCriteria(
                           generated,
                         );
+                        _strength = _criteria.overallStrength;
                       });
                       Navigator.of(context).pop();
                     },
@@ -323,7 +336,8 @@ class _AddEditEntryScreenState extends ConsumerState<AddEditEntryScreen> {
       case PasswordStrength.weak:
         return colors.error;
       case PasswordStrength.medium:
-        return colors.brandAccent; // Uses brandAccent to avoid inventing non-palette warning colors
+        return colors
+            .brandAccent; // Uses brandAccent to avoid inventing non-palette warning colors
       case PasswordStrength.strong:
         return colors.successForeground;
       case PasswordStrength.veryStrong:
@@ -360,10 +374,7 @@ class _AddEditEntryScreenState extends ConsumerState<AddEditEntryScreen> {
         color: colors.surfacePrimary,
         borderRadius: BorderRadius.circular(16),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: children,
-      ),
+      child: Column(mainAxisSize: MainAxisSize.min, children: children),
     );
   }
 
@@ -398,29 +409,40 @@ class _AddEditEntryScreenState extends ConsumerState<AddEditEntryScreen> {
 
     int filledSegments = 0;
     String label = '';
-    if (_strength == PasswordStrength.weak) {
-      filledSegments = 1;
-      label = 'Weak';
-    } else if (_strength == PasswordStrength.medium) {
-      filledSegments = 2;
-      label = 'Fair';
-    } else if (_strength == PasswordStrength.strong || _strength == PasswordStrength.veryStrong) {
-      filledSegments = 3;
-      label = 'Strong';
+    switch (_strength) {
+      case PasswordStrength.weak:
+        filledSegments = 1;
+        label = 'Weak';
+        break;
+      case PasswordStrength.medium:
+        filledSegments = 2;
+        label = 'Fair';
+        break;
+      case PasswordStrength.strong:
+        filledSegments = 3;
+        label = 'Strong';
+        break;
+      case PasswordStrength.veryStrong:
+        filledSegments = 4;
+        label = 'Very Strong';
+        break;
     }
 
     return Padding(
-      padding: const EdgeInsets.only(top: 12.0, bottom: 16.0, left: 4.0, right: 4.0),
+      padding: const EdgeInsets.only(
+        top: 12.0,
+        bottom: 8.0,
+        left: 4.0,
+        right: 4.0,
+      ),
       child: Row(
         children: [
-          ...List.generate(3, (index) {
+          ...List.generate(4, (index) {
             final isFilled = index < filledSegments;
             return Expanded(
               child: Container(
                 height: 3,
-                margin: EdgeInsets.only(
-                  right: index < 2 ? 8.0 : 0.0,
-                ),
+                margin: EdgeInsets.only(right: index < 3 ? 6.0 : 0.0),
                 decoration: BoxDecoration(
                   color: isFilled ? strengthColor : colors.surfaceSecondary,
                   borderRadius: BorderRadius.circular(1.5),
@@ -438,6 +460,66 @@ class _AddEditEntryScreenState extends ConsumerState<AddEditEntryScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildPasswordCriteriaChecklist() {
+    if (_passwordController.text.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final colors = Theme.of(context).extension<AppColorsExtension>()!;
+
+    final criteriaList = [
+      {'label': 'At least 8 characters', 'isMet': _criteria.hasMinLength},
+      {
+        'label': 'Upper & lowercase letters',
+        'isMet': _criteria.hasUppercase && _criteria.hasLowercase,
+      },
+      {'label': 'At least one number', 'isMet': _criteria.hasNumber},
+      {'label': 'At least one symbol', 'isMet': _criteria.hasSymbol},
+      {
+        'label': 'At least 12 characters (threshold for a Strong password)',
+        'isMet': _criteria.hasMediumLength,
+      },
+      {
+        'label':
+            'At least 16 characters (threshold for a Very Strong password)',
+        'isMet': _criteria.hasGreatLength,
+      },
+    ];
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0, left: 4.0, right: 4.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: criteriaList.map((item) {
+          final isMet = item['isMet'] as bool;
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4.0),
+            child: Row(
+              children: [
+                Icon(
+                  isMet ? LucideIcons.checkCircle2 : LucideIcons.circle,
+                  color: isMet ? colors.success : colors.textMuted,
+                  size: 16,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  item['label'] as String,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: isMet ? colors.textMuted : colors.textPrimary,
+                    decoration: isMet
+                        ? TextDecoration.lineThrough
+                        : TextDecoration.none,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
       ),
     );
   }
@@ -475,12 +557,19 @@ class _AddEditEntryScreenState extends ConsumerState<AddEditEntryScreen> {
                 Row(
                   children: [
                     const SizedBox(width: 14),
-                    Icon(LucideIcons.type, color: colors.textSecondary.withValues(alpha: 0.7), size: 20),
+                    Icon(
+                      LucideIcons.type,
+                      color: colors.textSecondary.withValues(alpha: 0.7),
+                      size: 20,
+                    ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: TextFormField(
                         controller: _titleController,
-                        style: TextStyle(color: colors.textPrimary, fontSize: 16),
+                        style: TextStyle(
+                          color: colors.textPrimary,
+                          fontSize: 16,
+                        ),
                         decoration: InputDecoration(
                           hintText: 'Title / Account name',
                           hintStyle: TextStyle(color: colors.textMuted),
@@ -489,7 +578,9 @@ class _AddEditEntryScreenState extends ConsumerState<AddEditEntryScreen> {
                           focusedBorder: InputBorder.none,
                           errorBorder: InputBorder.none,
                           focusedErrorBorder: InputBorder.none,
-                          contentPadding: const EdgeInsets.symmetric(vertical: 16),
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 16,
+                          ),
                         ),
                         validator: (val) {
                           if (val == null || val.trim().isEmpty) {
@@ -506,12 +597,19 @@ class _AddEditEntryScreenState extends ConsumerState<AddEditEntryScreen> {
                 Row(
                   children: [
                     const SizedBox(width: 14),
-                    Icon(LucideIcons.layoutGrid, color: colors.textSecondary.withValues(alpha: 0.7), size: 20),
+                    Icon(
+                      LucideIcons.layoutGrid,
+                      color: colors.textSecondary.withValues(alpha: 0.7),
+                      size: 20,
+                    ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: DropdownButtonFormField<String>(
                         initialValue: _category,
-                        style: TextStyle(color: colors.textPrimary, fontSize: 16),
+                        style: TextStyle(
+                          color: colors.textPrimary,
+                          fontSize: 16,
+                        ),
                         dropdownColor: colors.surfacePrimary,
                         decoration: InputDecoration(
                           hintText: 'Category',
@@ -521,13 +619,20 @@ class _AddEditEntryScreenState extends ConsumerState<AddEditEntryScreen> {
                           focusedBorder: InputBorder.none,
                           errorBorder: InputBorder.none,
                           focusedErrorBorder: InputBorder.none,
-                          contentPadding: const EdgeInsets.symmetric(vertical: 16),
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 16,
+                          ),
                         ),
                         items: categories
-                            .map((cat) => DropdownMenuItem(
-                                  value: cat,
-                                  child: Text(cat, style: TextStyle(color: colors.textPrimary)),
-                                ))
+                            .map(
+                              (cat) => DropdownMenuItem(
+                                value: cat,
+                                child: Text(
+                                  cat,
+                                  style: TextStyle(color: colors.textPrimary),
+                                ),
+                              ),
+                            )
                             .toList(),
                         onChanged: (val) {
                           if (val != null) {
@@ -550,13 +655,20 @@ class _AddEditEntryScreenState extends ConsumerState<AddEditEntryScreen> {
                 Row(
                   children: [
                     const SizedBox(width: 14),
-                    Icon(LucideIcons.user, color: colors.textSecondary.withValues(alpha: 0.7), size: 20),
+                    Icon(
+                      LucideIcons.user,
+                      color: colors.textSecondary.withValues(alpha: 0.7),
+                      size: 20,
+                    ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: TextFormField(
                         controller: _usernameController,
                         keyboardType: TextInputType.emailAddress,
-                        style: TextStyle(color: colors.textPrimary, fontSize: 16),
+                        style: TextStyle(
+                          color: colors.textPrimary,
+                          fontSize: 16,
+                        ),
                         decoration: InputDecoration(
                           hintText: 'Username / Email',
                           hintStyle: TextStyle(color: colors.textMuted),
@@ -565,7 +677,9 @@ class _AddEditEntryScreenState extends ConsumerState<AddEditEntryScreen> {
                           focusedBorder: InputBorder.none,
                           errorBorder: InputBorder.none,
                           focusedErrorBorder: InputBorder.none,
-                          contentPadding: const EdgeInsets.symmetric(vertical: 16),
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 16,
+                          ),
                         ),
                       ),
                     ),
@@ -576,14 +690,21 @@ class _AddEditEntryScreenState extends ConsumerState<AddEditEntryScreen> {
                 Row(
                   children: [
                     const SizedBox(width: 14),
-                    Icon(LucideIcons.lock, color: colors.textSecondary.withValues(alpha: 0.7), size: 20),
+                    Icon(
+                      LucideIcons.lock,
+                      color: colors.textSecondary.withValues(alpha: 0.7),
+                      size: 20,
+                    ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: TextFormField(
                         controller: _passwordController,
                         obscureText: _obscurePassword,
                         onChanged: _onPasswordChanged,
-                        style: TextStyle(color: colors.textPrimary, fontSize: 16),
+                        style: TextStyle(
+                          color: colors.textPrimary,
+                          fontSize: 16,
+                        ),
                         decoration: InputDecoration(
                           hintText: 'Password',
                           hintStyle: TextStyle(color: colors.textMuted),
@@ -592,7 +713,9 @@ class _AddEditEntryScreenState extends ConsumerState<AddEditEntryScreen> {
                           focusedBorder: InputBorder.none,
                           errorBorder: InputBorder.none,
                           focusedErrorBorder: InputBorder.none,
-                          contentPadding: const EdgeInsets.symmetric(vertical: 16),
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 16,
+                          ),
                         ),
                         validator: (val) {
                           if (val == null || val.trim().isEmpty) {
@@ -608,7 +731,8 @@ class _AddEditEntryScreenState extends ConsumerState<AddEditEntryScreen> {
                         color: colors.textSecondary.withValues(alpha: 0.7),
                         size: 20,
                       ),
-                      onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                      onPressed: () =>
+                          setState(() => _obscurePassword = !_obscurePassword),
                     ),
                     Container(
                       height: 20,
@@ -632,13 +756,20 @@ class _AddEditEntryScreenState extends ConsumerState<AddEditEntryScreen> {
                 Row(
                   children: [
                     const SizedBox(width: 14),
-                    Icon(LucideIcons.link, color: colors.textSecondary.withValues(alpha: 0.7), size: 20),
+                    Icon(
+                      LucideIcons.link,
+                      color: colors.textSecondary.withValues(alpha: 0.7),
+                      size: 20,
+                    ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: TextFormField(
                         controller: _urlController,
                         keyboardType: TextInputType.url,
-                        style: TextStyle(color: colors.textPrimary, fontSize: 16),
+                        style: TextStyle(
+                          color: colors.textPrimary,
+                          fontSize: 16,
+                        ),
                         decoration: InputDecoration(
                           hintText: 'Website URL',
                           hintStyle: TextStyle(color: colors.textMuted),
@@ -647,7 +778,9 @@ class _AddEditEntryScreenState extends ConsumerState<AddEditEntryScreen> {
                           focusedBorder: InputBorder.none,
                           errorBorder: InputBorder.none,
                           focusedErrorBorder: InputBorder.none,
-                          contentPadding: const EdgeInsets.symmetric(vertical: 16),
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 16,
+                          ),
                         ),
                       ),
                     ),
@@ -660,6 +793,9 @@ class _AddEditEntryScreenState extends ConsumerState<AddEditEntryScreen> {
             // Password Strength Indicator
             _buildPasswordStrengthIndicator(),
 
+            // Password Criteria Checklist
+            _buildPasswordCriteriaChecklist(),
+
             // CUSTOM FIELDS Section
             _buildSectionHeader(
               'Custom Fields',
@@ -668,7 +804,11 @@ class _AddEditEntryScreenState extends ConsumerState<AddEditEntryScreen> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(LucideIcons.plus, color: colors.brandPrimary, size: 14),
+                    Icon(
+                      LucideIcons.plus,
+                      color: colors.brandPrimary,
+                      size: 14,
+                    ),
                     const SizedBox(width: 4),
                     Text(
                       'Add field',
@@ -695,8 +835,13 @@ class _AddEditEntryScreenState extends ConsumerState<AddEditEntryScreen> {
                         Expanded(
                           flex: 2,
                           child: TextFormField(
-                            controller: field['nameController'] as TextEditingController,
-                            style: TextStyle(color: colors.textPrimary, fontSize: 15),
+                            controller:
+                                field['nameController']
+                                    as TextEditingController,
+                            style: TextStyle(
+                              color: colors.textPrimary,
+                              fontSize: 15,
+                            ),
                             decoration: InputDecoration(
                               hintText: 'Field name',
                               hintStyle: TextStyle(color: colors.textMuted),
@@ -705,7 +850,9 @@ class _AddEditEntryScreenState extends ConsumerState<AddEditEntryScreen> {
                               focusedBorder: InputBorder.none,
                               errorBorder: InputBorder.none,
                               focusedErrorBorder: InputBorder.none,
-                              contentPadding: const EdgeInsets.symmetric(vertical: 16),
+                              contentPadding: const EdgeInsets.symmetric(
+                                vertical: 16,
+                              ),
                             ),
                           ),
                         ),
@@ -720,9 +867,14 @@ class _AddEditEntryScreenState extends ConsumerState<AddEditEntryScreen> {
                         Expanded(
                           flex: 3,
                           child: TextFormField(
-                            controller: field['valueController'] as TextEditingController,
+                            controller:
+                                field['valueController']
+                                    as TextEditingController,
                             obscureText: field['isSecret'] as bool,
-                            style: TextStyle(color: colors.textPrimary, fontSize: 15),
+                            style: TextStyle(
+                              color: colors.textPrimary,
+                              fontSize: 15,
+                            ),
                             decoration: InputDecoration(
                               hintText: 'Value',
                               hintStyle: TextStyle(color: colors.textMuted),
@@ -731,13 +883,17 @@ class _AddEditEntryScreenState extends ConsumerState<AddEditEntryScreen> {
                               focusedBorder: InputBorder.none,
                               errorBorder: InputBorder.none,
                               focusedErrorBorder: InputBorder.none,
-                              contentPadding: const EdgeInsets.symmetric(vertical: 16),
+                              contentPadding: const EdgeInsets.symmetric(
+                                vertical: 16,
+                              ),
                               suffixIcon: IconButton(
                                 icon: Icon(
                                   field['isSecret'] as bool
                                       ? LucideIcons.eyeOff
                                       : LucideIcons.eye,
-                                  color: colors.textSecondary.withValues(alpha: 0.7),
+                                  color: colors.textSecondary.withValues(
+                                    alpha: 0.7,
+                                  ),
                                   size: 18,
                                 ),
                                 onPressed: () {
@@ -780,7 +936,10 @@ class _AddEditEntryScreenState extends ConsumerState<AddEditEntryScreen> {
                         controller: _notesController,
                         maxLines: 4,
                         minLines: 2,
-                        style: TextStyle(color: colors.textPrimary, fontSize: 16),
+                        style: TextStyle(
+                          color: colors.textPrimary,
+                          fontSize: 16,
+                        ),
                         decoration: InputDecoration(
                           hintText: 'Add any additional notes...',
                           hintStyle: TextStyle(color: colors.textMuted),
@@ -789,7 +948,10 @@ class _AddEditEntryScreenState extends ConsumerState<AddEditEntryScreen> {
                           focusedBorder: InputBorder.none,
                           errorBorder: InputBorder.none,
                           focusedErrorBorder: InputBorder.none,
-                          contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 14,
+                            horizontal: 14,
+                          ),
                         ),
                       ),
                     ),
@@ -806,6 +968,7 @@ class _AddEditEntryScreenState extends ConsumerState<AddEditEntryScreen> {
                 _originalEntry == null ? 'Create Credential' : 'Save Changes',
               ),
             ),
+            const SizedBox(height: 32),
           ],
         ),
       ),

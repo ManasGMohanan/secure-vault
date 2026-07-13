@@ -28,7 +28,7 @@ ThemeData getLightTheme() {
     appBarTheme: const AppBarTheme(
       backgroundColor: AppPalette.lightNeutral,
       elevation: 0,
-      centerTitle: true,
+      centerTitle: false,
       iconTheme: IconThemeData(color: AppPalette.lightBlue2),
       titleTextStyle: TextStyle(
         fontFamily: 'Helvetica Rounded LT Std',
