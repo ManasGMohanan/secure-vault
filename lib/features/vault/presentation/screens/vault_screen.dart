@@ -88,7 +88,10 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('SecureVault'),
+        title: const Text(
+          'SecureVault',
+          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.lock_open_rounded),
@@ -116,8 +119,25 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
               controller: _searchController,
               onChanged: (_) => setState(() {}),
               decoration: InputDecoration(
-                hintText: 'Search title, username, or URL...',
-                prefixIcon: const Icon(Icons.search),
+                hintText: 'Search your vaults',
+                hintStyle: TextStyle(color: colors.textMuted),
+                prefixIcon: Icon(Icons.search, color: colors.textSecondary),
+                filled: true,
+                fillColor: theme.brightness == Brightness.dark 
+                    ? colors.surfaceSecondary 
+                    : colors.backgroundSecondary,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide.none,
+                ),
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
                         icon: const Icon(Icons.clear),
@@ -156,12 +176,12 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
                         });
                       }
                     },
-                    selectedColor: colors.brandPrimary.withValues(alpha: 0.15),
-                    backgroundColor: Colors.transparent,
+                    selectedColor: colors.brandPrimary,
+                    backgroundColor: theme.brightness == Brightness.dark 
+                        ? colors.surfaceSecondary 
+                        : colors.backgroundSecondary,
                     labelStyle: TextStyle(
-                      color: isSelected
-                          ? colors.brandPrimary
-                          : colors.textMuted,
+                      color: isSelected ? colors.textOnBrand : colors.textSecondary,
                       fontWeight: isSelected
                           ? FontWeight.w600
                           : FontWeight.w500,
@@ -169,11 +189,7 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    side: BorderSide(
-                      color: isSelected
-                          ? colors.brandPrimary.withValues(alpha: 0.5)
-                          : colors.borderDefault,
-                    ),
+                    side: BorderSide.none,
                   ),
                 );
               },
@@ -243,9 +259,15 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
     AppColorsExtension colors,
   ) {
     return Card(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 10),
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide.none,
+      ),
+      color: colors.surfacePrimary,
       child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
         leading: _buildLogoWidget(entry, colors),
         title: Row(
           children: [
@@ -281,7 +303,11 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
             const SizedBox(height: 4),
             Text(
               entry.username.isNotEmpty ? entry.username : '(No username)',
-              style: TextStyle(color: colors.textMuted, fontSize: 14),
+              style: TextStyle(
+                color: colors.textMuted,
+                fontSize: 14,
+                fontWeight: FontWeight.w400,
+              ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
