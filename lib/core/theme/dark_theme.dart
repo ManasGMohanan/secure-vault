@@ -28,7 +28,7 @@ ThemeData getDarkTheme() {
     appBarTheme: const AppBarTheme(
       backgroundColor: AppPalette.darkBlack3,
       elevation: 0,
-      centerTitle: true,
+      centerTitle: false,
       iconTheme: IconThemeData(color: AppPalette.darkWhite),
       titleTextStyle: TextStyle(
         fontFamily: 'Helvetica Rounded LT Std',

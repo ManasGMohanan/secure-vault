@@ -20,6 +20,28 @@ enum PasswordStrength {
   }
 }
 
+class PasswordCriteriaResult {
+  final bool hasMinLength;
+  final bool hasMediumLength;
+  final bool hasGreatLength;
+  final bool hasUppercase;
+  final bool hasLowercase;
+  final bool hasNumber;
+  final bool hasSymbol;
+  final PasswordStrength overallStrength;
+
+  const PasswordCriteriaResult({
+    required this.hasMinLength,
+    required this.hasMediumLength,
+    required this.hasGreatLength,
+    required this.hasUppercase,
+    required this.hasLowercase,
+    required this.hasNumber,
+    required this.hasSymbol,
+    required this.overallStrength,
+  });
+}
+
 class PasswordGenerator {
   PasswordGenerator._();
 
@@ -102,42 +124,64 @@ class PasswordGenerator {
     return input.split('').where((char) => !_ambiguous.contains(char)).join();
   }
 
-  /// Calculates the strength score of a password.
-  static PasswordStrength estimateStrength(String password) {
-    if (password.isEmpty) return PasswordStrength.weak;
-    if (password.length < 6) return PasswordStrength.weak;
+  /// Evaluates criteria and returns a detailed result.
+  static PasswordCriteriaResult evaluateCriteria(String password) {
+    final hasMinLength = password.length >= 8;
+    final hasMediumLength = password.length >= 12;
+    final hasGreatLength = password.length >= 16;
+    final hasLowercase = password.contains(RegExp(r'[a-z]'));
+    final hasUppercase = password.contains(RegExp(r'[A-Z]'));
+    final hasNumber = password.contains(RegExp(r'[0-9]'));
+    final hasSymbol = password.contains(RegExp(r"[!@#$%^&*()_+\-=\[\]{}|;:',./<>?]"));
+
+    if (password.isEmpty || password.length < 8) {
+      return PasswordCriteriaResult(
+        hasMinLength: hasMinLength,
+        hasMediumLength: hasMediumLength,
+        hasGreatLength: hasGreatLength,
+        hasUppercase: hasUppercase,
+        hasLowercase: hasLowercase,
+        hasNumber: hasNumber,
+        hasSymbol: hasSymbol,
+        overallStrength: PasswordStrength.weak,
+      );
+    }
 
     int score = 0;
-
-    // Length contributions
     if (password.length >= 8) score += 1;
     if (password.length >= 12) score += 1;
     if (password.length >= 16) score += 1;
 
-    // Complexity contributions
-    final hasLowercase = password.contains(RegExp(r'[a-z]'));
-    final hasUppercase = password.contains(RegExp(r'[A-Z]'));
-    final hasNumbers = password.contains(RegExp(r'[0-9]'));
-    final hasSymbols = password.contains(RegExp(r"[!@#$%^&*()_+\-=\[\]{}|;:',./<>?]"));
-
     if (hasLowercase) score += 1;
     if (hasUppercase) score += 1;
-    if (hasNumbers) score += 1;
-    if (hasSymbols) score += 1;
+    if (hasNumber) score += 1;
+    if (hasSymbol) score += 1;
 
-    // Penalty for short passwords
-    if (password.length < 8) {
-      return PasswordStrength.weak;
-    }
-
+    PasswordStrength strength;
     if (score <= 3) {
-      return PasswordStrength.weak;
+      strength = PasswordStrength.weak;
     } else if (score == 4 || score == 5) {
-      return PasswordStrength.medium;
+      strength = PasswordStrength.medium;
     } else if (score == 6) {
-      return PasswordStrength.strong;
+      strength = PasswordStrength.strong;
     } else {
-      return PasswordStrength.veryStrong;
+      strength = PasswordStrength.veryStrong;
     }
+
+    return PasswordCriteriaResult(
+      hasMinLength: hasMinLength,
+      hasMediumLength: hasMediumLength,
+      hasGreatLength: hasGreatLength,
+      hasUppercase: hasUppercase,
+      hasLowercase: hasLowercase,
+      hasNumber: hasNumber,
+      hasSymbol: hasSymbol,
+      overallStrength: strength,
+    );
+  }
+
+  /// Calculates the strength score of a password.
+  static PasswordStrength estimateStrength(String password) {
+    return evaluateCriteria(password).overallStrength;
   }
 }
