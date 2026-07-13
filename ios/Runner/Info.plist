@@ -68,5 +68,10 @@
 	</array>
 	<key>NSFaceIDUsageDescription</key>
 	<string>SecureVault uses Face ID to securely and quickly unlock your encrypted password vault.</string>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>https</string>
+		<string>http</string>
+	</array>
 </dict>
 </plist>
