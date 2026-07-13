@@ -177,6 +177,7 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
                       }
                     },
                     selectedColor: colors.brandPrimary,
+                    checkmarkColor: colors.textOnBrand,
                     backgroundColor: theme.brightness == Brightness.dark 
                         ? colors.surfaceSecondary 
                         : colors.backgroundSecondary,

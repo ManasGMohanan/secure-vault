@@ -8,17 +8,17 @@ ThemeData getDarkTheme() {
     brightness: Brightness.dark,
     fontFamily: 'Helvetica',
     colorScheme: ColorScheme.fromSeed(
-      seedColor: AppPalette.darkBlue3,
+      seedColor: AppPalette.darkBlack3,
       brightness: Brightness.dark,
-      primary: AppPalette.darkBlue3,
+      primary: AppPalette.darkF5,
       surface: AppPalette.darkBlack3,
-      onPrimary: AppPalette.darkWhite,
-      onSurface: AppPalette.darkWhite,
+      onPrimary: AppPalette.darkBlack3,
+      onSurface: AppPalette.darkF5,
       error: AppPalette.darkError1,
     ),
     scaffoldBackgroundColor: AppPalette.darkBlack3,
     cardTheme: CardThemeData(
-      color: AppPalette.darkBlack1,
+      color: AppPalette.darkBlue2, // surfaceSecondary (#303030) as per hierarchy
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
@@ -50,7 +50,7 @@ ThemeData getDarkTheme() {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppPalette.darkBlue3, width: 1.5),
+        borderSide: const BorderSide(color: AppPalette.darkGrey4, width: 1.5),
       ),
       contentPadding: const EdgeInsets.symmetric(
         horizontal: 16,
@@ -59,8 +59,8 @@ ThemeData getDarkTheme() {
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        backgroundColor: AppPalette.darkBlue3,
-        foregroundColor: AppPalette.darkWhite,
+        backgroundColor: AppPalette.darkGrey2, // charcoal elevated surface
+        foregroundColor: AppPalette.darkF5,
         elevation: 0,
         minimumSize: const Size(double.infinity, 54),
         shape: RoundedRectangleBorder(
@@ -88,23 +88,23 @@ ThemeData getDarkTheme() {
         surfaceSecondary: AppPalette.darkBlue2,
         surfaceElevated: AppPalette.darkGrey2,
         surfaceMuted: AppPalette.darkGrey1,
-        textPrimary: AppPalette.darkWhite,
+        textPrimary: AppPalette.darkF5,
         textSecondary: AppPalette.darkNeutral,
         textMuted: AppPalette.darkGrey4,
         textDisabled: AppPalette.darkGrey3,
-        textOnBrand: AppPalette.darkWhite,
-        brandPrimary: AppPalette.darkBlue3,
-        brandSecondary: AppPalette.darkBlue6,
-        brandAccent: AppPalette.darkBlue7,
+        textOnBrand: AppPalette.darkBlack3,
+        brandPrimary: AppPalette.darkF5,       // off-white — primary interactive highlight
+        brandSecondary: AppPalette.darkGrey4,  // muted grey — secondary signals
+        brandAccent: AppPalette.darkGrey2,     // charcoal — subtle surface tints
         borderDefault: AppPalette.darkGrey1,
-        borderSubtle: AppPalette.darkBlue2,
-        divider: AppPalette.darkGrey1,
+        borderSubtle: AppPalette.darkGrey5,
+        divider: AppPalette.darkGrey5,
         success: AppPalette.darkSuccess2,
         successBackground: AppPalette.darkSuccess1,
         successForeground: AppPalette.darkSuccess3,
         error: AppPalette.darkError1,
-        errorBackground: AppPalette.darkBlack1,
-        errorForeground: AppPalette.darkError2,
+        errorBackground: AppPalette.darkError2,
+        errorForeground: AppPalette.darkError3,
       ),
     ],
   );

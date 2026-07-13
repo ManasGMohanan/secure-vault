@@ -8,12 +8,12 @@ ThemeData getLightTheme() {
     brightness: Brightness.light,
     fontFamily: 'Helvetica',
     colorScheme: ColorScheme.fromSeed(
-      seedColor: AppPalette.lightBlue1,
+      seedColor: AppPalette.lightBlack1,
       brightness: Brightness.light,
-      primary: AppPalette.lightBlue1,
+      primary: AppPalette.lightBlack1,
       surface: AppPalette.lightNeutral,
       onPrimary: AppPalette.lightWhite,
-      onSurface: AppPalette.lightBlue2,
+      onSurface: AppPalette.lightBlack1,
       error: AppPalette.lightError1,
     ),
     scaffoldBackgroundColor: AppPalette.lightNeutral,
@@ -22,17 +22,17 @@ ThemeData getLightTheme() {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: AppPalette.lightGrey11, width: 1),
+        side: const BorderSide(color: AppPalette.lightGrey6, width: 1),
       ),
     ),
     appBarTheme: const AppBarTheme(
       backgroundColor: AppPalette.lightNeutral,
       elevation: 0,
       centerTitle: false,
-      iconTheme: IconThemeData(color: AppPalette.lightBlue2),
+      iconTheme: IconThemeData(color: AppPalette.lightBlack1),
       titleTextStyle: TextStyle(
         fontFamily: 'Helvetica Rounded LT Std',
-        color: AppPalette.lightBlue2,
+        color: AppPalette.lightBlack1,
         fontSize: 20,
         fontWeight: FontWeight.bold,
       ),
@@ -42,15 +42,15 @@ ThemeData getLightTheme() {
       fillColor: AppPalette.lightWhite,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppPalette.lightGrey11),
+        borderSide: const BorderSide(color: AppPalette.lightGrey6),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppPalette.lightGrey11),
+        borderSide: const BorderSide(color: AppPalette.lightGrey6),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppPalette.lightBlue1, width: 1.5),
+        borderSide: const BorderSide(color: AppPalette.lightGrey3, width: 1.5),
       ),
       contentPadding: const EdgeInsets.symmetric(
         horizontal: 16,
@@ -59,7 +59,7 @@ ThemeData getLightTheme() {
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        backgroundColor: AppPalette.lightBlue1,
+        backgroundColor: AppPalette.lightBlack1,
         foregroundColor: AppPalette.lightWhite,
         elevation: 0,
         minimumSize: const Size(double.infinity, 54),
@@ -71,8 +71,8 @@ ThemeData getLightTheme() {
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
-        foregroundColor: AppPalette.lightBlue1,
-        side: const BorderSide(color: AppPalette.lightBlue1, width: 1.5),
+        foregroundColor: AppPalette.lightBlack1,
+        side: const BorderSide(color: AppPalette.lightGrey4, width: 1.5),
         minimumSize: const Size(double.infinity, 54),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
@@ -88,16 +88,16 @@ ThemeData getLightTheme() {
         surfaceSecondary: AppPalette.lightWhite3,
         surfaceElevated: AppPalette.lightWhite,
         surfaceMuted: AppPalette.lightWhite4,
-        textPrimary: AppPalette.lightBlue2,
-        textSecondary: AppPalette.lightBlue5,
+        textPrimary: AppPalette.lightBlack1,
+        textSecondary: AppPalette.lightBlack2,
         textMuted: AppPalette.lightGrey3,
         textDisabled: AppPalette.lightGrey4,
         textOnBrand: AppPalette.lightWhite,
-        brandPrimary: AppPalette.lightBlue1,
-        brandSecondary: AppPalette.lightBlue4,
-        brandAccent: AppPalette.lightBlue6,
-        borderDefault: AppPalette.lightGrey11,
-        borderSubtle: AppPalette.lightGrey10,
+        brandPrimary: AppPalette.lightBlack1,       // near-black — primary interactive
+        brandSecondary: AppPalette.lightBlack2,     // dark grey — secondary signals
+        brandAccent: AppPalette.lightGrey4,         // mid grey — subtle tints
+        borderDefault: AppPalette.lightGrey6,
+        borderSubtle: AppPalette.lightGrey5,
         divider: AppPalette.lightGrey7,
         success: AppPalette.lightSuccess1,
         successBackground: AppPalette.lightSuccess2,
@@ -109,3 +109,4 @@ ThemeData getLightTheme() {
     ],
   );
 }
+
