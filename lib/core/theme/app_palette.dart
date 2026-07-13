@@ -39,9 +39,9 @@ abstract final class AppPalette {
   static const Color lightSuccess3 = Color(0xFFAAE4B1);
 
   // Error Semantics
-  static const Color lightError1 = Color(0xFF631313);
-  static const Color lightError2 = Color(0xFFEA9E9E);
-  static const Color lightError3 = Color(0xFFE4AAAA);
+  static const Color lightError1 = Color(0xFFD32F2F);
+  static const Color lightError2 = Color(0xFFFFEBEE);
+  static const Color lightError3 = Color(0xFFE53935);
 
 
   // --- DARK MODE PALETTE ---
@@ -76,7 +76,7 @@ abstract final class AppPalette {
   static const Color darkSuccess3 = Color(0xFF9EEAA7); // successForeground
 
   // Error Semantics
-  static const Color darkError1 = Color(0xFF631313); // error
-  static const Color darkError2 = Color(0xFFEA9E9E); // errorBackground
-  static const Color darkError3 = Color(0xFFE4AAAA); // errorForeground
+  static const Color darkError1 = Color(0xFFEF5350); // error
+  static const Color darkError2 = Color(0xFF4A1919); // errorBackground
+  static const Color darkError3 = Color(0xFFE57373); // errorForeground
 }

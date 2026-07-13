@@ -110,10 +110,22 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
       return this;
     }
     return AppColorsExtension(
-      backgroundPrimary: Color.lerp(backgroundPrimary, other.backgroundPrimary, t)!,
-      backgroundSecondary: Color.lerp(backgroundSecondary, other.backgroundSecondary, t)!,
+      backgroundPrimary: Color.lerp(
+        backgroundPrimary,
+        other.backgroundPrimary,
+        t,
+      )!,
+      backgroundSecondary: Color.lerp(
+        backgroundSecondary,
+        other.backgroundSecondary,
+        t,
+      )!,
       surfacePrimary: Color.lerp(surfacePrimary, other.surfacePrimary, t)!,
-      surfaceSecondary: Color.lerp(surfaceSecondary, other.surfaceSecondary, t)!,
+      surfaceSecondary: Color.lerp(
+        surfaceSecondary,
+        other.surfaceSecondary,
+        t,
+      )!,
       surfaceElevated: Color.lerp(surfaceElevated, other.surfaceElevated, t)!,
       surfaceMuted: Color.lerp(surfaceMuted, other.surfaceMuted, t)!,
       textPrimary: Color.lerp(textPrimary, other.textPrimary, t)!,
@@ -128,8 +140,16 @@ class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
       borderSubtle: Color.lerp(borderSubtle, other.borderSubtle, t)!,
       divider: Color.lerp(divider, other.divider, t)!,
       success: Color.lerp(success, other.success, t)!,
-      successBackground: Color.lerp(successBackground, other.successBackground, t)!,
-      successForeground: Color.lerp(successForeground, other.successForeground, t)!,
+      successBackground: Color.lerp(
+        successBackground,
+        other.successBackground,
+        t,
+      )!,
+      successForeground: Color.lerp(
+        successForeground,
+        other.successForeground,
+        t,
+      )!,
       error: Color.lerp(error, other.error, t)!,
       errorBackground: Color.lerp(errorBackground, other.errorBackground, t)!,
       errorForeground: Color.lerp(errorForeground, other.errorForeground, t)!,
