@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:secure_vault/core/routing/gorouter_extension.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:secure_vault/core/theme/theme.dart';
+import '../helpers/brand_logo_helper.dart';
 import '../../../auth/presentation/providers/auth_notifier.dart';
 import '../../domain/entities/vault_entry.dart';
 import '../../presentation/providers/vault_notifier.dart';
@@ -244,11 +246,7 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        leading: CircleAvatar(
-          backgroundColor: colors.brandPrimary.withValues(alpha: 0.1),
-          foregroundColor: colors.brandPrimary,
-          child: Icon(_getCategoryIcon(entry.category)),
-        ),
+        leading: _buildLogoWidget(entry, colors),
         title: Row(
           children: [
             Expanded(
@@ -307,18 +305,85 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
     );
   }
 
-  IconData _getCategoryIcon(String category) {
-    switch (category.toLowerCase()) {
-      case 'social':
-        return Icons.people_outline;
-      case 'banking':
-        return Icons.account_balance_outlined;
-      case 'work':
-        return Icons.business_center_outlined;
-      case 'email':
-        return Icons.alternate_email_outlined;
-      default:
-        return Icons.vpn_key_outlined;
+  Widget _buildLogoWidget(
+    VaultEntry entry,
+    AppColorsExtension colors, {
+    double size = 48,
+  }) {
+    final domain = getDomainFromUrlOrTitle(entry.url, entry.title);
+    final localPath = getLocalSvgPath(domain, entry.title);
+
+    Widget fallbackAvatar() {
+      final initial = entry.title.trim().isNotEmpty
+          ? entry.title.trim().substring(0, 1).toUpperCase()
+          : '?';
+      final bgColor = getBrandColor(entry.title);
+      return Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Center(
+          child: Text(
+            initial,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
+          ),
+        ),
+      );
     }
+
+    if (localPath != null) {
+      return Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        padding: EdgeInsets.all(size * 0.12),
+        child: SvgPicture.asset(localPath, fit: BoxFit.contain),
+      );
+    }
+
+    if (domain != null) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          width: size,
+          height: size,
+          decoration: const BoxDecoration(color: Colors.white),
+          child: Image.network(
+            getLogoUrl(domain),
+            width: size,
+            height: size,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) => fallbackAvatar(),
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+              return Container(
+                width: size,
+                height: size,
+                color: colors.surfaceSecondary,
+                child: const Center(
+                  child: SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      );
+    }
+
+    return fallbackAvatar();
   }
 }
