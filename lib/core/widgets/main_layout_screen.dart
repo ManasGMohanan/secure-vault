@@ -56,18 +56,18 @@ class MainLayoutScreen extends StatelessWidget {
                                   Icon(
                                     LucideIcons.key,
                                     color: currentIndex == 0
-                                        ? colors.brandPrimary
+                                        ? colors.textPrimary
                                         : colors.textDisabled,
-                                    size: 20, // Scaled down icon size
+                                    size: 20,
                                   ),
                                   const SizedBox(height: 3),
                                   Text(
                                     'Vault',
                                     style: TextStyle(
-                                      fontSize: 11, // Scaled down font size
+                                      fontSize: 11,
                                       fontWeight: currentIndex == 0 ? FontWeight.w600 : FontWeight.w500,
                                       color: currentIndex == 0
-                                          ? colors.brandPrimary
+                                          ? colors.textPrimary
                                           : colors.textDisabled,
                                     ),
                                   ),
@@ -88,18 +88,18 @@ class MainLayoutScreen extends StatelessWidget {
                                   Icon(
                                     LucideIcons.sparkles,
                                     color: currentIndex == 1
-                                        ? colors.brandPrimary
+                                        ? colors.textPrimary
                                         : colors.textDisabled,
-                                    size: 20, // Scaled down icon size
+                                    size: 20,
                                   ),
                                   const SizedBox(height: 3),
                                   Text(
                                     'Generator',
                                     style: TextStyle(
-                                      fontSize: 11, // Scaled down font size
+                                      fontSize: 11,
                                       fontWeight: currentIndex == 1 ? FontWeight.w600 : FontWeight.w500,
                                       color: currentIndex == 1
-                                          ? colors.brandPrimary
+                                          ? colors.textPrimary
                                           : colors.textDisabled,
                                     ),
                                   ),
@@ -116,16 +116,27 @@ class MainLayoutScreen extends StatelessWidget {
                       child: GestureDetector(
                         onTap: () => context.goToNewEntry(),
                         child: Container(
-                          width: 48, // Scaled down FAB size (48px)
+                          width: 48,
                           height: 48,
                           decoration: BoxDecoration(
-                            color: colors.brandPrimary,
+                            color: colors.surfaceElevated, // charcoal #3B3B3E
                             shape: BoxShape.circle,
+                            border: Border.all(
+                              color: colors.borderDefault, // subtle #4A4A4A ring
+                              width: 1,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.4),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.add,
-                            color: Colors.white,
-                            size: 24, // Scaled down icon inside FAB
+                            color: colors.textPrimary,
+                            size: 24,
                           ),
                         ),
                       ),

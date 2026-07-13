@@ -2,34 +2,36 @@ import 'package:flutter/material.dart';
 
 abstract final class AppPalette {
   // --- LIGHT MODE PALETTE ---
-  // Whites
+  // Whites & Off-whites
   static const Color lightWhite = Color(0xFFFFFFFF);
-  static const Color lightNeutral = Color(0xFFF0F1F5);
-  static const Color lightWhite3 = Color(0xFFE9E9EA);
-  static const Color lightWhite4 = Color(0xFFDDDFE9);
-  static const Color lightWhite5 = Color(0xFFD5DDED);
-  static const Color lightWhite6 = Color(0xFFCED6E9);
+  static const Color lightNeutral = Color(0xFFF5F5F5); // scaffold background
+  static const Color lightWhite3 = Color(0xFFEEEEEE); // surfaceSecondary
+  static const Color lightWhite4 = Color(0xFFE0E0E0); // surfaceMuted / borders
+  static const Color lightWhite5 = Color(0xFFEEEEEE); // backgroundSecondary
+  static const Color lightWhite6 = Color(0xFFBDBDBD); // divider
 
-  // Brand Blues
-  static const Color lightBlue1 = Color(0xFF0A2D67);
-  static const Color lightBlue2 = Color(0xFF191E3C);
-  static const Color lightBlue3 = Color(0xFF1F284B);
-  static const Color lightBlue4 = Color(0xFF20294C);
-  static const Color lightBlue5 = Color(0xFF303A47);
-  static const Color lightBlue6 = Color(0xFF788DBA);
+  // True Neutral Blacks & Greys (no blue tint)
+  static const Color lightBlack1 = Color(0xFF111111); // textPrimary
+  static const Color lightBlack2 = Color(0xFF212121); // textSecondary
+  static const Color lightGrey1 = Color(0xFF424242); // textMuted
+  static const Color lightGrey2 = Color(0xFF616161); // textMuted alt
+  static const Color lightGrey3 = Color(0xFF757575); // textMuted
+  static const Color lightGrey4 = Color(0xFF9E9E9E); // textDisabled
+  static const Color lightGrey5 = Color(0xFFBDBDBD); // borderSubtle
+  static const Color lightGrey6 = Color(0xFFE0E0E0); // borderDefault
+  static const Color lightGrey7 = Color(0xFFEEEEEE); // divider
+  static const Color lightGrey8 = Color(0xFFF5F5F5); // surface muted
+  static const Color lightGrey9 = Color(0xFFE8E8E8);
+  static const Color lightGrey10 = Color(0xFFE0E0E0);
+  static const Color lightGrey11 = Color(0xFFD6D6D6);
 
-  // Bluish Greys
-  static const Color lightGrey1 = Color(0xFF545875);
-  static const Color lightGrey2 = Color(0xFF555777);
-  static const Color lightGrey3 = Color(0xFF676B89);
-  static const Color lightGrey4 = Color(0xFF979CB5);
-  static const Color lightGrey5 = Color(0xFF979DB5);
-  static const Color lightGrey6 = Color(0xFFBAC0D2);
-  static const Color lightGrey7 = Color(0xFFBAC0D4);
-  static const Color lightGrey8 = Color(0xFFBCC0D4);
-  static const Color lightGrey9 = Color(0xFFC7CBDA);
-  static const Color lightGrey10 = Color(0xFFC7CBDB);
-  static const Color lightGrey11 = Color(0xFFCFD3E1);
+  // Legacy Brand Blues (kept for reference, not used in semantic system)
+  static const Color lightBlue1 = Color(0xFF111111); // remapped: primary action → near-black
+  static const Color lightBlue2 = Color(0xFF111111); // remapped: textPrimary → near-black
+  static const Color lightBlue3 = Color(0xFF212121);
+  static const Color lightBlue4 = Color(0xFF212121);
+  static const Color lightBlue5 = Color(0xFF424242);
+  static const Color lightBlue6 = Color(0xFF9E9E9E);
 
   // Success Semantics
   static const Color lightSuccess1 = Color(0xFF136317);
@@ -45,34 +47,36 @@ abstract final class AppPalette {
   // --- DARK MODE PALETTE ---
   // Whites
   static const Color darkWhite = Color(0xFFFFFFFF);
-  static const Color darkNeutral = Color(0xFFF0F1F5);
+  static const Color darkNeutral = Color(0xFFCFD3E1); // textSecondary
+  static const Color darkF5 = Color(0xFFF5F5F5); // textPrimary
 
   // Brand Blues
-  static const Color darkBlue1 = Color(0xFF062A65);
-  static const Color darkBlue2 = Color(0xFF262C3D);
-  static const Color darkBlue3 = Color(0xFF5390F5);
-  static const Color darkBlue4 = Color(0xFF013B55);
-  static const Color darkBlue5 = Color(0xFF2B6781);
-  static const Color darkBlue6 = Color(0xFFBCD3FB);
-  static const Color darkBlue7 = Color(0xFF788DBA);
+  static const Color darkBlue1 = Color(0xFF062A65); // brandDark
+  static const Color darkBlue2 = Color(0xFF303030); // surfaceSecondary
+  static const Color darkBlue3 = Color(0xFF5C99FF); // brandPrimary
+  static const Color darkBlue4 = Color(0xFF191E3C);
+  static const Color darkBlue5 = Color(0xFF0F3D87); // brandAccent
+  static const Color darkBlue6 = Color(0xFF82B0FF); // brandSecondary
+  static const Color darkBlue7 = Color(0xFF0F254B);
 
-  // Bluish Greys & Blacks
-  static const Color darkBlack1 = Color(0xFF011F2D);
-  static const Color darkBlack2 = Color(0xFF031720);
-  static const Color darkBlack3 = Color(0xFF041720);
-  static const Color darkGrey1 = Color(0xFF273B47);
-  static const Color darkGrey2 = Color(0xFF2A2F41);
-  static const Color darkGrey3 = Color(0xFF464E6D);
-  static const Color darkGrey4 = Color(0xFF8889A5);
-  static const Color darkGrey5 = Color(0xFF979DB5);
+  // Neutral Blacks & Greys
+  static const Color darkBlack1 = Color(0xFF1F1F1F); // surfacePrimary
+  static const Color darkBlack2 = Color(0xFF1F1F1F); // backgroundSecondary
+  static const Color darkBlack3 = Color(0xFF0D0D0D); // backgroundPrimary
+  static const Color darkGrey1 = Color(0xFF4A4A4A); // borderDefault / surfaceMuted
+  static const Color darkGrey2 = Color(0xFF3B3B3E); // surfaceElevated
+  static const Color darkGrey3 = Color(0xFF6E6E6E); // textDisabled
+  static const Color darkGrey4 = Color(0xFFA1A1A1); // textMuted
+  static const Color darkGrey5 = Color(0xFF545875); // borderSubtle / divider
+  static const Color darkFAB = Color(0xFF2C2C2C); // FAB: charcoal elevated action
 
   // Success Semantics
-  static const Color darkSuccess1 = Color(0xFF136317);
-  static const Color darkSuccess2 = Color(0xFF42C251);
-  static const Color darkSuccess3 = Color(0xFFAAE4B1);
+  static const Color darkSuccess1 = Color(0xFF003B07); // successBackground
+  static const Color darkSuccess2 = Color(0xFF8DF099); // success
+  static const Color darkSuccess3 = Color(0xFF9EEAA7); // successForeground
 
   // Error Semantics
-  static const Color darkError1 = Color(0xFFC24242);
-  static const Color darkError2 = Color(0xFFEA9E9E);
-  static const Color darkError3 = Color(0xFFE4AAAA);
+  static const Color darkError1 = Color(0xFF631313); // error
+  static const Color darkError2 = Color(0xFFEA9E9E); // errorBackground
+  static const Color darkError3 = Color(0xFFE4AAAA); // errorForeground
 }
