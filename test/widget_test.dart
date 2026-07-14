@@ -3,14 +3,16 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:secure_vault/features/auth/presentation/screens/onboarding_screen.dart';
+import 'package:secure_vault/core/theme/theme.dart';
 
 void main() {
   testWidgets('OnboardingScreen renders title and form fields', (WidgetTester tester) async {
     // Build OnboardingScreen in an environment with Riverpod and Material
     await tester.pumpWidget(
-      const ProviderScope(
+      ProviderScope(
         child: MaterialApp(
-          home: OnboardingScreen(),
+          theme: AppTheme.light,
+          home: const OnboardingScreen(),
         ),
       ),
     );

@@ -6,7 +6,24 @@ part of 'app_router.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$appRouterHash() => r'61ad68b835bb932b5c9d687b356654ac8e0ba73e';
+String _$splashDelayHash() => r'6085ff74d83ce7ce85295ef2d80d55b1c46b935c';
+
+/// See also [splashDelay].
+@ProviderFor(splashDelay)
+final splashDelayProvider = AutoDisposeFutureProvider<void>.internal(
+  splashDelay,
+  name: r'splashDelayProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$splashDelayHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef SplashDelayRef = AutoDisposeFutureProviderRef<void>;
+String _$appRouterHash() => r'938eb98d846e6cc215af94e0072a449075917c60';
 
 /// See also [appRouter].
 @ProviderFor(appRouter)

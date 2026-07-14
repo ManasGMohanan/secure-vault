@@ -3,8 +3,8 @@ description: "A new Flutter project."
 
 publish_to: 'none' 
 
-
-version: 1.0.0+1
+# The following defines the version and build number for your application.
+version: 1.0.0+7
 
 environment:
   sdk: ^3.11.1
@@ -49,6 +49,10 @@ dependencies:
 
   # UI & Icons
   flutter_svg: ^2.0.10+1
+  web: ^1.1.1
+  lucide_icons_flutter: ^3.1.14+2
+  url_launcher: ^6.3.1
+
 
 dev_dependencies:
   flutter_test:
@@ -68,25 +72,35 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
-
-  # The following line ensures that the Material Icons font is
-  # included with your application, so that you can use the icons in
-  # the material Icons class.
   uses-material-design: true
 
-  # To add assets to your application, add an assets section, like this:
   assets:
-    - assets/app_icon.png
-    - assets/app_logo.png
-    - assets/app_logo.svg
+    - assets/images/png/
+    - assets/images/svg/
+    - assets/fonts/
+    - assets/logos/
+
+  fonts:
+    - family: Helvetica
+      fonts:
+        - asset: assets/fonts/Helvetica-Light.ttf
+          weight: 300
+        - asset: assets/fonts/Helvetica-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Helvetica-Bold.ttf
+          weight: 700
+    - family: Helvetica Rounded LT Std
+      fonts:
+        - asset: assets/fonts/Helvetica-Rounded-Bold.otf
+          weight: 700
 
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
-  image_path: "assets/app_icon.png"
+  image_path: "assets/images/png/securevault_app_icon.png"
   web:
     generate: true
-    image_path: "assets/app_icon.png"
+    image_path: "assets/images/png/securevault_app_icon.png"
   macos:
     generate: true
-    image_path: "assets/app_icon.png"
+    image_path: "assets/images/png/securevault_app_icon.png"

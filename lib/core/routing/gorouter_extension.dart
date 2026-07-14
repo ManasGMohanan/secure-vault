@@ -9,6 +9,6 @@ extension NavigationExtension on BuildContext {
   void goToEntryDetail(String id) => push('/entry/$id');
   void goToEditEntry(String id) => push('/entry/$id/edit');
   void goToNewEntry() => push('/entry/new');
-  void goToSettings() => go('/settings');
+  void goToSettings() => push('/settings');
   void goToGenerator() => go('/generator');
 }

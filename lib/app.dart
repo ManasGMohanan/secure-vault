@@ -33,8 +33,8 @@ class SecureVaultApp extends ConsumerWidget {
       },
       child: MaterialApp.router(
         title: 'SecureVault',
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
+        theme: AppTheme.light,
+        darkTheme: AppTheme.dark,
         themeMode: themeMode,
         routerConfig: router,
         debugShowCheckedModeBanner: false,

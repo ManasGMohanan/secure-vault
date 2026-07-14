@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:secure_vault/core/routing/gorouter_extension.dart';
+import 'package:secure_vault/core/theme/theme.dart';
 import 'package:uuid/uuid.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../domain/entities/vault_entry.dart';
 import '../../presentation/providers/vault_notifier.dart';
 import '../../../password_generator/domain/password_generator.dart';
@@ -26,6 +28,16 @@ class _AddEditEntryScreenState extends ConsumerState<AddEditEntryScreen> {
   String _category = 'Social';
   bool _obscurePassword = true;
   PasswordStrength _strength = PasswordStrength.weak;
+  PasswordCriteriaResult _criteria = const PasswordCriteriaResult(
+    hasMinLength: false,
+    hasMediumLength: false,
+    hasGreatLength: false,
+    hasUppercase: false,
+    hasLowercase: false,
+    hasNumber: false,
+    hasSymbol: false,
+    overallStrength: PasswordStrength.weak,
+  );
 
   // Custom fields tracking
   final List<Map<String, dynamic>> _customFields = [];
@@ -56,6 +68,7 @@ class _AddEditEntryScreenState extends ConsumerState<AddEditEntryScreen> {
       _notesController.text = entry.notes;
       _category = entry.category;
       _strength = PasswordGenerator.estimateStrength(entry.password);
+      _criteria = PasswordGenerator.evaluateCriteria(entry.password);
 
       // Load custom fields
       for (final field in entry.customFields) {
@@ -84,7 +97,8 @@ class _AddEditEntryScreenState extends ConsumerState<AddEditEntryScreen> {
 
   void _onPasswordChanged(String val) {
     setState(() {
-      _strength = PasswordGenerator.estimateStrength(val);
+      _criteria = PasswordGenerator.evaluateCriteria(val);
+      _strength = _criteria.overallStrength;
     });
   }
 
@@ -220,9 +234,10 @@ class _AddEditEntryScreenState extends ConsumerState<AddEditEntryScreen> {
                       );
                       setState(() {
                         _passwordController.text = generated;
-                        _strength = PasswordGenerator.estimateStrength(
+                        _criteria = PasswordGenerator.evaluateCriteria(
                           generated,
                         );
+                        _strength = _criteria.overallStrength;
                       });
                       Navigator.of(context).pop();
                     },
@@ -316,32 +331,214 @@ class _AddEditEntryScreenState extends ConsumerState<AddEditEntryScreen> {
   }
 
   Color _getStrengthColor() {
+    final colors = Theme.of(context).extension<AppColorsExtension>()!;
     switch (_strength) {
       case PasswordStrength.weak:
-        return Colors.redAccent;
+        return colors.error;
       case PasswordStrength.medium:
-        return Colors.orangeAccent;
+        return colors
+            .brandAccent; // Uses brandAccent to avoid inventing non-palette warning colors
       case PasswordStrength.strong:
-        return Colors.tealAccent.shade400;
+        return colors.successForeground;
       case PasswordStrength.veryStrong:
-        return Colors.teal.shade400;
+        return colors.success;
     }
+  }
+
+  Widget _buildSectionHeader(String title, {Widget? trailing}) {
+    final colors = Theme.of(context).extension<AppColorsExtension>()!;
+    return Padding(
+      padding: const EdgeInsets.only(left: 4.0, bottom: 8.0, top: 16.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            title.toUpperCase(),
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.8,
+              color: colors.textMuted,
+            ),
+          ),
+          if (trailing != null) trailing,
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGroupedCard({required List<Widget> children}) {
+    final colors = Theme.of(context).extension<AppColorsExtension>()!;
+    return Container(
+      decoration: BoxDecoration(
+        color: colors.surfacePrimary,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(mainAxisSize: MainAxisSize.min, children: children),
+    );
+  }
+
+  List<Widget> _buildCardFields(List<Widget> fields) {
+    final colors = Theme.of(context).extension<AppColorsExtension>()!;
+    final List<Widget> items = [];
+    for (int i = 0; i < fields.length; i++) {
+      items.add(fields[i]);
+      if (i < fields.length - 1) {
+        items.add(
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14.0),
+            child: Divider(
+              height: 1,
+              thickness: 1,
+              color: colors.borderDefault,
+            ),
+          ),
+        );
+      }
+    }
+    return items;
+  }
+
+  Widget _buildPasswordStrengthIndicator() {
+    if (_passwordController.text.isEmpty) {
+      return const SizedBox(height: 16);
+    }
+
+    final colors = Theme.of(context).extension<AppColorsExtension>()!;
+    final strengthColor = _getStrengthColor();
+
+    int filledSegments = 0;
+    String label = '';
+    switch (_strength) {
+      case PasswordStrength.weak:
+        filledSegments = 1;
+        label = 'Weak';
+        break;
+      case PasswordStrength.medium:
+        filledSegments = 2;
+        label = 'Fair';
+        break;
+      case PasswordStrength.strong:
+        filledSegments = 3;
+        label = 'Strong';
+        break;
+      case PasswordStrength.veryStrong:
+        filledSegments = 4;
+        label = 'Very Strong';
+        break;
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(
+        top: 12.0,
+        bottom: 8.0,
+        left: 4.0,
+        right: 4.0,
+      ),
+      child: Row(
+        children: [
+          ...List.generate(4, (index) {
+            final isFilled = index < filledSegments;
+            return Expanded(
+              child: Container(
+                height: 3,
+                margin: EdgeInsets.only(right: index < 3 ? 6.0 : 0.0),
+                decoration: BoxDecoration(
+                  color: isFilled ? strengthColor : colors.surfaceSecondary,
+                  borderRadius: BorderRadius.circular(1.5),
+                ),
+              ),
+            );
+          }),
+          const SizedBox(width: 16),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: strengthColor,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPasswordCriteriaChecklist() {
+    if (_passwordController.text.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final colors = Theme.of(context).extension<AppColorsExtension>()!;
+
+    final criteriaList = [
+      {'label': 'At least 8 characters', 'isMet': _criteria.hasMinLength},
+      {
+        'label': 'Upper & lowercase letters',
+        'isMet': _criteria.hasUppercase && _criteria.hasLowercase,
+      },
+      {'label': 'At least one number', 'isMet': _criteria.hasNumber},
+      {'label': 'At least one symbol', 'isMet': _criteria.hasSymbol},
+      {
+        'label': 'At least 12 characters (threshold for a Strong password)',
+        'isMet': _criteria.hasMediumLength,
+      },
+      {
+        'label':
+            'At least 16 characters (threshold for a Very Strong password)',
+        'isMet': _criteria.hasGreatLength,
+      },
+    ];
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0, left: 4.0, right: 4.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: criteriaList.map((item) {
+          final isMet = item['isMet'] as bool;
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4.0),
+            child: Row(
+              children: [
+                Icon(
+                  isMet ? LucideIcons.checkCircle2 : LucideIcons.circle,
+                  color: isMet ? colors.success : colors.textMuted,
+                  size: 16,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  item['label'] as String,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: isMet ? colors.textMuted : colors.textPrimary,
+                    decoration: isMet
+                        ? TextDecoration.lineThrough
+                        : TextDecoration.none,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final colors = theme.extension<AppColorsExtension>()!;
     final categories = ['Social', 'Banking', 'Work', 'Email', 'Other'];
 
     return Scaffold(
+      backgroundColor: colors.backgroundPrimary,
       appBar: AppBar(
         title: Text(
           _originalEntry == null ? 'Add Credential' : 'Edit Credential',
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.check),
+            icon: const Icon(LucideIcons.check),
             tooltip: 'Save',
             onPressed: _save,
           ),
@@ -352,244 +549,415 @@ class _AddEditEntryScreenState extends ConsumerState<AddEditEntryScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16.0),
           children: [
-            // Title field
-            TextFormField(
-              controller: _titleController,
-              decoration: const InputDecoration(
-                labelText: 'Title / Account Name',
-                prefixIcon: Icon(Icons.title),
-              ),
-              validator: (val) {
-                if (val == null || val.trim().isEmpty) {
-                  return 'Please enter a title';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 16),
-
-            // Category field
-            DropdownButtonFormField<String>(
-              initialValue: _category,
-              decoration: const InputDecoration(
-                labelText: 'Category',
-                prefixIcon: Icon(Icons.category_outlined),
-              ),
-              items: categories
-                  .map((cat) => DropdownMenuItem(value: cat, child: Text(cat)))
-                  .toList(),
-              onChanged: (val) {
-                if (val != null) {
-                  setState(() => _category = val);
-                }
-              },
-            ),
-            const SizedBox(height: 16),
-
-            // Username field
-            TextFormField(
-              controller: _usernameController,
-              keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(
-                labelText: 'Username / Email',
-                prefixIcon: Icon(Icons.person_outline),
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Password field (with generator and strength meter)
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: _passwordController,
-                    obscureText: _obscurePassword,
-                    onChanged: _onPasswordChanged,
-                    decoration: InputDecoration(
-                      labelText: 'Password',
-                      prefixIcon: const Icon(Icons.lock_outline),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscurePassword
-                              ? Icons.visibility_off_outlined
-                              : Icons.visibility_outlined,
-                        ),
-                        onPressed: () => setState(
-                          () => _obscurePassword = !_obscurePassword,
-                        ),
-                      ),
-                    ),
-                    validator: (val) {
-                      if (val == null || val.trim().isEmpty) {
-                        return 'Please enter a password';
-                      }
-                      return null;
-                    },
-                  ),
-                ),
-                const SizedBox(width: 8),
-                IconButton(
-                  icon: const Icon(Icons.autorenew),
-                  tooltip: 'Generate Password',
-                  style: IconButton.styleFrom(
-                    backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.1),
-                    minimumSize: const Size(54, 54),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  onPressed: _showPasswordGeneratorSheet,
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-
-            // Strength indicator
-            if (_passwordController.text.isNotEmpty) ...[
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                child: Row(
+            // BASIC INFO Section
+            _buildSectionHeader('Basic Info'),
+            _buildGroupedCard(
+              children: _buildCardFields([
+                // Title field
+                Row(
                   children: [
-                    Text(
-                      'Strength: ${_strength.label}',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: _getStrengthColor(),
+                    const SizedBox(width: 14),
+                    Icon(
+                      LucideIcons.type,
+                      color: colors.textSecondary.withValues(alpha: 0.7),
+                      size: 20,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: TextFormField(
+                        controller: _titleController,
+                        style: TextStyle(
+                          color: colors.textPrimary,
+                          fontSize: 16,
+                        ),
+                        decoration: InputDecoration(
+                          hintText: 'Title / Account name',
+                          hintStyle: TextStyle(color: colors.textMuted),
+                          border: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          errorBorder: InputBorder.none,
+                          focusedErrorBorder: InputBorder.none,
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 16,
+                          ),
+                        ),
+                        validator: (val) {
+                          if (val == null || val.trim().isEmpty) {
+                            return 'Please enter a title';
+                          }
+                          return null;
+                        },
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 14),
+                  ],
+                ),
+                // Category field
+                Row(
+                  children: [
+                    const SizedBox(width: 14),
+                    Icon(
+                      LucideIcons.layoutGrid,
+                      color: colors.textSecondary.withValues(alpha: 0.7),
+                      size: 20,
+                    ),
+                    const SizedBox(width: 12),
                     Expanded(
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(4),
-                        child: LinearProgressIndicator(
-                          value: _strength == PasswordStrength.weak
-                              ? 0.25
-                              : _strength == PasswordStrength.medium
-                              ? 0.5
-                              : _strength == PasswordStrength.strong
-                              ? 0.75
-                              : 1.0,
-                          color: _getStrengthColor(),
-                          backgroundColor: isDark
-                              ? Colors.grey.shade800
-                              : Colors.grey.shade200,
-                          minHeight: 4,
+                      child: DropdownButtonFormField<String>(
+                        initialValue: _category,
+                        style: TextStyle(
+                          color: colors.textPrimary,
+                          fontSize: 16,
                         ),
+                        dropdownColor: colors.surfacePrimary,
+                        decoration: InputDecoration(
+                          hintText: 'Category',
+                          hintStyle: TextStyle(color: colors.textMuted),
+                          border: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          errorBorder: InputBorder.none,
+                          focusedErrorBorder: InputBorder.none,
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 16,
+                          ),
+                        ),
+                        items: categories
+                            .map(
+                              (cat) => DropdownMenuItem(
+                                value: cat,
+                                child: Text(
+                                  cat,
+                                  style: TextStyle(color: colors.textPrimary),
+                                ),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (val) {
+                          if (val != null) {
+                            setState(() => _category = val);
+                          }
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                  ],
+                ),
+              ]),
+            ),
+
+            // LOGIN DETAILS Section
+            _buildSectionHeader('Login Details'),
+            _buildGroupedCard(
+              children: _buildCardFields([
+                // Username field
+                Row(
+                  children: [
+                    const SizedBox(width: 14),
+                    Icon(
+                      LucideIcons.user,
+                      color: colors.textSecondary.withValues(alpha: 0.7),
+                      size: 20,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: TextFormField(
+                        controller: _usernameController,
+                        keyboardType: TextInputType.emailAddress,
+                        style: TextStyle(
+                          color: colors.textPrimary,
+                          fontSize: 16,
+                        ),
+                        decoration: InputDecoration(
+                          hintText: 'Username / Email',
+                          hintStyle: TextStyle(color: colors.textMuted),
+                          border: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          errorBorder: InputBorder.none,
+                          focusedErrorBorder: InputBorder.none,
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 16,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                  ],
+                ),
+                // Password field
+                Row(
+                  children: [
+                    const SizedBox(width: 14),
+                    Icon(
+                      LucideIcons.lock,
+                      color: colors.textSecondary.withValues(alpha: 0.7),
+                      size: 20,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: TextFormField(
+                        controller: _passwordController,
+                        obscureText: _obscurePassword,
+                        onChanged: _onPasswordChanged,
+                        style: TextStyle(
+                          color: colors.textPrimary,
+                          fontSize: 16,
+                        ),
+                        decoration: InputDecoration(
+                          hintText: 'Password',
+                          hintStyle: TextStyle(color: colors.textMuted),
+                          border: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          errorBorder: InputBorder.none,
+                          focusedErrorBorder: InputBorder.none,
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 16,
+                          ),
+                        ),
+                        validator: (val) {
+                          if (val == null || val.trim().isEmpty) {
+                            return 'Please enter a password';
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(
+                        _obscurePassword ? LucideIcons.eyeOff : LucideIcons.eye,
+                        color: colors.textSecondary.withValues(alpha: 0.7),
+                        size: 20,
+                      ),
+                      onPressed: () =>
+                          setState(() => _obscurePassword = !_obscurePassword),
+                    ),
+                    Container(
+                      height: 20,
+                      width: 1,
+                      color: colors.borderDefault,
+                      margin: const EdgeInsets.symmetric(horizontal: 4),
+                    ),
+                    IconButton(
+                      icon: Icon(
+                        LucideIcons.refreshCw,
+                        color: colors.brandPrimary,
+                        size: 20,
+                      ),
+                      tooltip: 'Generate Password',
+                      onPressed: _showPasswordGeneratorSheet,
+                    ),
+                    const SizedBox(width: 6),
+                  ],
+                ),
+                // Website URL field
+                Row(
+                  children: [
+                    const SizedBox(width: 14),
+                    Icon(
+                      LucideIcons.link,
+                      color: colors.textSecondary.withValues(alpha: 0.7),
+                      size: 20,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: TextFormField(
+                        controller: _urlController,
+                        keyboardType: TextInputType.url,
+                        style: TextStyle(
+                          color: colors.textPrimary,
+                          fontSize: 16,
+                        ),
+                        decoration: InputDecoration(
+                          hintText: 'Website URL',
+                          hintStyle: TextStyle(color: colors.textMuted),
+                          border: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          errorBorder: InputBorder.none,
+                          focusedErrorBorder: InputBorder.none,
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 16,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                  ],
+                ),
+              ]),
+            ),
+
+            // Password Strength Indicator
+            _buildPasswordStrengthIndicator(),
+
+            // Password Criteria Checklist
+            _buildPasswordCriteriaChecklist(),
+
+            // CUSTOM FIELDS Section
+            _buildSectionHeader(
+              'Custom Fields',
+              trailing: GestureDetector(
+                onTap: _addCustomField,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      LucideIcons.plus,
+                      color: colors.brandPrimary,
+                      size: 14,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Add field',
+                      style: TextStyle(
+                        color: colors.brandPrimary,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 12,
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 16),
+            ),
+            if (_customFields.isNotEmpty) ...[
+              _buildGroupedCard(
+                children: _buildCardFields(
+                  _customFields.asMap().entries.map((item) {
+                    final idx = item.key;
+                    final field = item.value;
+                    return Row(
+                      children: [
+                        const SizedBox(width: 14),
+                        // Field name
+                        Expanded(
+                          flex: 2,
+                          child: TextFormField(
+                            controller:
+                                field['nameController']
+                                    as TextEditingController,
+                            style: TextStyle(
+                              color: colors.textPrimary,
+                              fontSize: 15,
+                            ),
+                            decoration: InputDecoration(
+                              hintText: 'Field name',
+                              hintStyle: TextStyle(color: colors.textMuted),
+                              border: InputBorder.none,
+                              enabledBorder: InputBorder.none,
+                              focusedBorder: InputBorder.none,
+                              errorBorder: InputBorder.none,
+                              focusedErrorBorder: InputBorder.none,
+                              contentPadding: const EdgeInsets.symmetric(
+                                vertical: 16,
+                              ),
+                            ),
+                          ),
+                        ),
+                        // Divider
+                        Container(
+                          height: 24,
+                          width: 1,
+                          color: colors.borderDefault,
+                          margin: const EdgeInsets.symmetric(horizontal: 12),
+                        ),
+                        // Value
+                        Expanded(
+                          flex: 3,
+                          child: TextFormField(
+                            controller:
+                                field['valueController']
+                                    as TextEditingController,
+                            obscureText: field['isSecret'] as bool,
+                            style: TextStyle(
+                              color: colors.textPrimary,
+                              fontSize: 15,
+                            ),
+                            decoration: InputDecoration(
+                              hintText: 'Value',
+                              hintStyle: TextStyle(color: colors.textMuted),
+                              border: InputBorder.none,
+                              enabledBorder: InputBorder.none,
+                              focusedBorder: InputBorder.none,
+                              errorBorder: InputBorder.none,
+                              focusedErrorBorder: InputBorder.none,
+                              contentPadding: const EdgeInsets.symmetric(
+                                vertical: 16,
+                              ),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  field['isSecret'] as bool
+                                      ? LucideIcons.eyeOff
+                                      : LucideIcons.eye,
+                                  color: colors.textSecondary.withValues(
+                                    alpha: 0.7,
+                                  ),
+                                  size: 18,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _customFields[idx]['isSecret'] =
+                                        !(field['isSecret'] as bool);
+                                  });
+                                },
+                              ),
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          icon: Icon(
+                            LucideIcons.trash2,
+                            color: colors.error.withValues(alpha: 0.8),
+                            size: 20,
+                          ),
+                          onPressed: () => _removeCustomField(idx),
+                        ),
+                        const SizedBox(width: 8),
+                      ],
+                    );
+                  }).toList(),
+                ),
+              ),
             ] else ...[
               const SizedBox(height: 8),
             ],
 
-            // Website URL
-            TextFormField(
-              controller: _urlController,
-              keyboardType: TextInputType.url,
-              decoration: const InputDecoration(
-                labelText: 'Website URL',
-                prefixIcon: Icon(Icons.link),
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // Custom Fields Section Header
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            // NOTES Section
+            _buildSectionHeader('Notes'),
+            _buildGroupedCard(
               children: [
-                Text(
-                  'Custom Fields',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                TextButton.icon(
-                  onPressed: _addCustomField,
-                  icon: const Icon(Icons.add, size: 18),
-                  label: const Text('Add Field'),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-
-            // Custom fields list
-            ..._customFields.asMap().entries.map((item) {
-              final idx = item.key;
-              final field = item.value;
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 12.0),
-                child: Row(
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
-                      flex: 2,
                       child: TextFormField(
-                        controller:
-                            field['nameController'] as TextEditingController,
-                        decoration: const InputDecoration(
-                          hintText: 'Field Name',
-                          contentPadding: EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 12,
-                          ),
+                        controller: _notesController,
+                        maxLines: 4,
+                        minLines: 2,
+                        style: TextStyle(
+                          color: colors.textPrimary,
+                          fontSize: 16,
                         ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      flex: 3,
-                      child: TextFormField(
-                        controller:
-                            field['valueController'] as TextEditingController,
-                        obscureText: field['isSecret'] as bool,
                         decoration: InputDecoration(
-                          hintText: 'Value',
+                          hintText: 'Add any additional notes...',
+                          hintStyle: TextStyle(color: colors.textMuted),
+                          border: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          errorBorder: InputBorder.none,
+                          focusedErrorBorder: InputBorder.none,
                           contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 12,
-                          ),
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              field['isSecret'] as bool
-                                  ? Icons.visibility_off_outlined
-                                  : Icons.visibility_outlined,
-                              size: 18,
-                            ),
-                            onPressed: () {
-                              setState(() {
-                                _customFields[idx]['isSecret'] =
-                                    !(field['isSecret'] as bool);
-                              });
-                            },
+                            vertical: 14,
+                            horizontal: 14,
                           ),
                         ),
                       ),
-                    ),
-                    IconButton(
-                      icon: const Icon(
-                        Icons.delete_outline,
-                        color: Colors.redAccent,
-                      ),
-                      onPressed: () => _removeCustomField(idx),
                     ),
                   ],
                 ),
-              );
-            }),
-            const SizedBox(height: 12),
-
-            // Notes
-            TextFormField(
-              controller: _notesController,
-              maxLines: 4,
-              decoration: const InputDecoration(
-                labelText: 'Notes',
-                prefixIcon: Icon(Icons.notes),
-                alignLabelWithHint: true,
-              ),
+              ],
             ),
             const SizedBox(height: 32),
 
@@ -600,6 +968,7 @@ class _AddEditEntryScreenState extends ConsumerState<AddEditEntryScreen> {
                 _originalEntry == null ? 'Create Credential' : 'Save Changes',
               ),
             ),
+            const SizedBox(height: 32),
           ],
         ),
       ),

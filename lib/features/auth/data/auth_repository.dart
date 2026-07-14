@@ -8,6 +8,7 @@ import 'package:crypto/crypto.dart' as crypto_lib;
 import '../../../../core/error/failures.dart';
 import '../../../../core/security/cryptography_helper.dart';
 import '../../../../core/security/security_storage_service.dart';
+import '../../../../core/security/web_storage_helper.dart';
 
 part 'auth_repository.g.dart';
 
@@ -125,6 +126,7 @@ class AuthRepository {
   Future<void> clearVaultData() async {
     try {
       await _storageService.clearAllSecurityData();
+      clearWebSession();
       // Also log out from Firebase if logged in
       if (FirebaseAuth.instance.currentUser != null) {
         await FirebaseAuth.instance.signOut();

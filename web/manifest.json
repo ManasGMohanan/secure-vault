@@ -1,11 +1,11 @@
 {
-    "name": "secure_vault",
-    "short_name": "secure_vault",
+    "name": "SecureVault — Secure Password Manager",
+    "short_name": "SecureVault",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#001018",
+    "theme_color": "#788DBA",
+    "description": "SecureVault is a secure, client-side, encrypted credentials manager and vault application to safely store passwords, tokens, and personal credentials.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

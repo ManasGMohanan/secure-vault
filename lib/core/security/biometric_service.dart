@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -29,7 +31,15 @@ class BiometricService {
           biometricOnly: true,
         ),
       );
-    } catch (_) {
+    } catch (e, stack) {
+      if (e is PlatformException) {
+        debugPrint('[BIOMETRICS_ERROR] PlatformException Code: ${e.code}');
+        debugPrint('[BIOMETRICS_ERROR] PlatformException Message: ${e.message}');
+        debugPrint('[BIOMETRICS_ERROR] PlatformException Details: ${e.details}');
+      } else {
+        debugPrint('[BIOMETRICS_ERROR] Generic exception: $e');
+      }
+      debugPrint('[BIOMETRICS_ERROR] Stack trace: $stack');
       return false;
     }
   }
